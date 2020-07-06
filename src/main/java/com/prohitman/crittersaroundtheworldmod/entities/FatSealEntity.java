@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import com.prohitman.crittersaroundtheworldmod.init.ModSounds;
 import com.prohitman.crittersaroundtheworldmod.entities.goals.FatSealWanderGoal;
 import com.prohitman.crittersaroundtheworldmod.entities.goals.ModGoToWaterGoal;
+import com.prohitman.crittersaroundtheworldmod.entities.goals.fatseal.FatSealFollowBoatGoal;
 import com.prohitman.crittersaroundtheworldmod.entities.goals.fatseal.FatSealPlayerTemptGoal;
 import com.prohitman.crittersaroundtheworldmod.init.ModEntities;
 
@@ -31,7 +32,6 @@ import net.minecraft.entity.ai.controller.JumpController;
 import net.minecraft.entity.ai.controller.MovementController;
 import net.minecraft.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.entity.ai.goal.BreedGoal;
-import net.minecraft.entity.ai.goal.FollowBoatGoal;
 import net.minecraft.entity.ai.goal.FollowParentGoal;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.LookAtGoal;
@@ -129,7 +129,7 @@ public class FatSealEntity extends AnimalEntity {
 		this.goalSelector.addGoal(4, new FatSealPlayerTemptGoal(this, 1.0D, TEMPTATION_ITEMS));
 		this.goalSelector.addGoal(6, new ModGoToWaterGoal(this, 1.0D, 16));
 		this.goalSelector.addGoal(7, new FatSealEntity.TravelGoal(this, 1.0D)); // NEEDS TEST
-		this.goalSelector.addGoal(8, new FollowBoatGoal(this));
+		this.goalSelector.addGoal(8, new FatSealFollowBoatGoal(this));
 		this.goalSelector.addGoal(8, new LookAtGoal(this, PlayerEntity.class, 6.0F));
 		this.goalSelector.addGoal(9, new FatSealEntity.PickUpFoodGoal(this));
 		this.goalSelector.addGoal(9, new FatSealWanderGoal(this, 1.0D, 100));
