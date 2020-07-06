@@ -53,7 +53,7 @@ public class ModEntities {
 				FatSealEntity::canSpawn);
 		EntitySpawnPlacementRegistry.register(FIRE_FLY_ENTITY.get(),
 				EntitySpawnPlacementRegistry.PlacementType.NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
-				FireFlyEntity::onInitialSpawn);
+				FireFlyEntity::canSpawn);
 	}
 
 }

@@ -63,9 +63,9 @@ public class FireFlyEntity extends AmbientEntity {
 		this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(3.0D);
 	}
 
-	public static boolean onInitialSpawn(EntityType<FireFlyEntity> entityTypeIn, IWorld world, SpawnReason reason,
+	public static boolean canSpawn(EntityType<FireFlyEntity> entityTypeIn, IWorld world, SpawnReason reason,
 			BlockPos blockpos, Random rand) {
-		return blockpos.getY() < world.getSeaLevel() + 4 && world.getLight(blockpos) < 8;
+		return blockpos.getY() < world.getSeaLevel() + 8 && world.getLight(blockpos) < 8;
 	}
 
 	public boolean canBePushed() {
