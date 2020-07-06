@@ -2,8 +2,9 @@ package com.prohitman.crittersaroundtheworldmod.entities;
 
 import java.util.Random;
 
-
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.EntitySize;
@@ -63,9 +64,16 @@ public class FireFlyEntity extends AmbientEntity {
 		this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(3.0D);
 	}
 
+//	public static boolean canSpawn(EntityType<FireFlyEntity> entityTypeIn, IWorld world, SpawnReason reason,
+//			BlockPos blockpos, Random rand) {
+//		return blockpos.getY() < world.getSeaLevel() + 8 && world.getLight(blockpos) < 8;
+//	}
+
 	public static boolean canSpawn(EntityType<FireFlyEntity> entityTypeIn, IWorld world, SpawnReason reason,
 			BlockPos blockpos, Random rand) {
-		return blockpos.getY() < world.getSeaLevel() + 8 && world.getLight(blockpos) < 8;
+		Block block = world.getBlockState(blockpos.down()).getBlock();
+		return (block == Blocks.DIRT || block == Blocks.COARSE_DIRT || block == Blocks.PODZOL
+				|| block == Blocks.GRASS_BLOCK || block == Blocks.AIR) && world.getLightSubtracted(blockpos, 0) > 12;
 	}
 
 	public boolean canBePushed() {

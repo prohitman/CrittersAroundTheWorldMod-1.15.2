@@ -37,12 +37,12 @@ public class ModEntities {
 		for (Biome biome : ForgeRegistries.BIOMES) {
 			if (biome != null
 					&& (biome == Biomes.ICE_SPIKES || biome == Biomes.SNOWY_BEACH)) {
-				biome.getSpawns(EntityClassification.CREATURE).add(new SpawnListEntry(FAT_SEAL_ENTITY.get(), 4, 5, 10));
+				biome.getSpawns(EntityClassification.CREATURE).add(new SpawnListEntry(FAT_SEAL_ENTITY.get(), 30, 5, 10));
 			}
 
 			if ((biome.getCategory() == Biome.Category.TAIGA || biome.getCategory() == Biome.Category.FOREST)
 					&& biome != null) {
-				biome.getSpawns(EntityClassification.AMBIENT).add(new SpawnListEntry(FIRE_FLY_ENTITY.get(), 25, 1, 6));
+				biome.getSpawns(EntityClassification.AMBIENT).add(new SpawnListEntry(FIRE_FLY_ENTITY.get(), 20, 10, 20));// do 3 / 10
 			}
 		}
 	}

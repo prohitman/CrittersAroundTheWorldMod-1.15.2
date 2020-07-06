@@ -15,6 +15,7 @@ import com.prohitman.crittersaroundtheworldmod.entities.goals.fatseal.FatSealGoH
 import com.prohitman.crittersaroundtheworldmod.entities.goals.fatseal.FatSealPlayerTemptGoal;
 import com.prohitman.crittersaroundtheworldmod.init.ModEntities;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.AgeableEntity;
@@ -237,7 +238,8 @@ public class FatSealEntity extends AnimalEntity {
 
 	public static boolean canSpawn(EntityType<FatSealEntity> entityTypeIn, IWorld world, SpawnReason reason,
 			BlockPos blockpos, Random rand) {
-		return blockpos.getY() < world.getSeaLevel() + 4 && (world.getBlockState(blockpos.down()).getBlock().getTags() == BlockTags.ICE || world.getBlockState(blockpos.down()).getBlock() == Blocks.SNOW) && world.getLightSubtracted(blockpos, 0) > 8;
+		Block block = world.getBlockState(blockpos.down()).getBlock();
+		return blockpos.getY() < world.getSeaLevel() + 4 && (block.isIn(BlockTags.ICE) || block == Blocks.SNOW) && world.getLightSubtracted(blockpos, 0) > 8;
 	}
 
 	@Nullable
