@@ -101,9 +101,8 @@ public class FatSealEntity extends AnimalEntity {
 	public boolean isSwimmingWithPlayer;
 	private int ticksUntilJump;
 	public boolean isGettingTempted;
-	//private Random rand = new Random();
 	public int ticksInWater = 0;
-	//private long lastOnPlayed;
+	// private long lastOnPlayed;
 	private boolean isPaniced;
 
 	public FatSealEntity(EntityType<? extends AnimalEntity> type, World worldIn) {
@@ -408,7 +407,7 @@ public class FatSealEntity extends AnimalEntity {
 	}
 
 	private void playEatingAnimation() {
-		//long l = this.world.getGameTime();
+		// long l = this.world.getGameTime();
 		if (this.getEatingTicks() % 5 == 0) {
 			this.playSound(SoundEvents.ENTITY_PANDA_EAT, 0.5F + 0.5F * (float) this.rand.nextInt(2),
 					(this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F + 1.0F);
@@ -621,7 +620,7 @@ public class FatSealEntity extends AnimalEntity {
 		private void updateSpeed() {
 			if (this.seal.isInWater()) {
 				this.seal.setMotion(this.seal.getMotion().add(0.0D, 0.005D, 0.0D));
-				this.seal.setAIMoveSpeed(Math.max(this.seal.getAIMoveSpeed() / 2.0F, 0.08F));
+				//this.seal.setAIMoveSpeed(Math.max(this.seal.getAIMoveSpeed() / 2.0F, 0.08F));
 				this.seal.setJumping(false);
 
 			}
@@ -638,7 +637,8 @@ public class FatSealEntity extends AnimalEntity {
 
 		public void tick() {
 			this.updateSpeed();
-			if (this.action == MovementController.Action.MOVE_TO && !this.seal.getNavigator().noPath()) {
+			if (this.action == MovementController.Action.MOVE_TO && !this.seal.getNavigator().noPath()
+					&& this.seal.isInWater()) {
 				double d0 = this.posX - this.seal.getPosX();
 				double d1 = this.posY - this.seal.getPosY();
 				double d2 = this.posZ - this.seal.getPosZ();
@@ -652,11 +652,14 @@ public class FatSealEntity extends AnimalEntity {
 				this.seal.setAIMoveSpeed(MathHelper.lerp(0.125F, this.seal.getAIMoveSpeed(), f1));
 				this.seal.setMotion(
 						this.seal.getMotion().add(0.0D, (double) this.seal.getAIMoveSpeed() * d1 * 0.1D, 0.0D));
-			} else {
-				this.seal.setAIMoveSpeed(0.0F);
+			} else if (!this.seal.isInWater()) {
 				super.tick();
 			}
-			
+
+			else {
+				this.seal.setAIMoveSpeed(0.0F);
+			}
+
 		}
 
 		/**
@@ -814,6 +817,7 @@ public class FatSealEntity extends AnimalEntity {
 			return new PathFinder(this.nodeProcessor, range);
 		};
 
+		@SuppressWarnings("deprecation")
 		public boolean canEntityStandOnPos(BlockPos pos) {
 			if (this.entity instanceof FatSealEntity) {
 				FatSealEntity sealentity = (FatSealEntity) this.entity;
@@ -822,7 +826,7 @@ public class FatSealEntity extends AnimalEntity {
 				}
 			}
 
-			return !this.world.getBlockState(pos.down()).isAir(this.entity.world, pos);// MAYBE SOURCE
+			return !this.world.getBlockState(pos.down()).isAir(/* this.entity.world, pos */);// MAYBE SOURCE
 		}
 	}
 
