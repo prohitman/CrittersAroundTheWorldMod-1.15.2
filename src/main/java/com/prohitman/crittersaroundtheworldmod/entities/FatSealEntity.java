@@ -239,7 +239,8 @@ public class FatSealEntity extends AnimalEntity {
 	public static boolean canSpawn(EntityType<FatSealEntity> entityTypeIn, IWorld world, SpawnReason reason,
 			BlockPos blockpos, Random rand) {
 		Block block = world.getBlockState(blockpos.down()).getBlock();
-		return blockpos.getY() < world.getSeaLevel() + 4 && (block.isIn(BlockTags.ICE) || block == Blocks.SNOW) && world.getLightSubtracted(blockpos, 0) > 8;
+		return blockpos.getY() < world.getSeaLevel() + 4 && (block.isIn(BlockTags.ICE) || block == Blocks.SNOW)
+				&& world.getLightSubtracted(blockpos, 0) > 8;
 	}
 
 	@Nullable
@@ -656,9 +657,9 @@ public class FatSealEntity extends AnimalEntity {
 		private void updateSpeed() {
 			if (this.seal.isInWater()) {
 				this.seal.setMotion(this.seal.getMotion().add(0.0D, 0.005D, 0.0D));
-				if (!this.seal.getHome().withinDistance(this.seal.getPositionVec(), 16.0D)) {
-					this.seal.setAIMoveSpeed(Math.max(this.seal.getAIMoveSpeed() / 2.0F, 0.08F));
-				}
+				//if (!this.seal.getHome().withinDistance(this.seal.getPositionVec(), 16.0D)) {
+					//this.seal.setAIMoveSpeed(Math.max(this.seal.getAIMoveSpeed() / 2.0F, 0.08F));
+				//}
 				this.seal.setJumping(false);
 
 			}
