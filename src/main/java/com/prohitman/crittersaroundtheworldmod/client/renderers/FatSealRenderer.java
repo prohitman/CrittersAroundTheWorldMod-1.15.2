@@ -20,7 +20,7 @@ public class FatSealRenderer extends MobRenderer<FatSealEntity, FatSealModel<Fat
 
 	public FatSealRenderer(EntityRendererManager renderManagerIn) 
 	{
-		super(renderManagerIn, new FatSealModel<>(), 0.3F);
+		super(renderManagerIn, new FatSealModel<>(), 0.7F);
 		this.addLayer(new FatSealHeldItemLayer(this));
 	}
 	

@@ -11,6 +11,7 @@ import com.prohitman.crittersaroundtheworldmod.init.ModSounds;
 import com.prohitman.crittersaroundtheworldmod.entities.goals.FatSealWanderGoal;
 import com.prohitman.crittersaroundtheworldmod.entities.goals.ModGoToWaterGoal;
 import com.prohitman.crittersaroundtheworldmod.entities.goals.fatseal.FatSealFollowBoatGoal;
+import com.prohitman.crittersaroundtheworldmod.entities.goals.fatseal.FatSealGoHomeGoal;
 import com.prohitman.crittersaroundtheworldmod.entities.goals.fatseal.FatSealPlayerTemptGoal;
 import com.prohitman.crittersaroundtheworldmod.init.ModEntities;
 
@@ -64,6 +65,7 @@ import net.minecraft.pathfinding.SwimmerPathNavigator;
 import net.minecraft.pathfinding.WalkAndSwimNodeProcessor;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
@@ -81,6 +83,10 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class FatSealEntity extends AnimalEntity {
+	private static final DataParameter<BlockPos> HOME_POS = EntityDataManager.createKey(FatSealEntity.class,
+			DataSerializers.BLOCK_POS);
+	private static final DataParameter<Boolean> GOING_HOME = EntityDataManager.createKey(FatSealEntity.class,
+			DataSerializers.BOOLEAN);
 	private static final Ingredient TEMPTATION_ITEMS = Ingredient.fromItems(Items.COD, Items.SALMON,
 			Items.TROPICAL_FISH);
 	private static final DataParameter<Boolean> TRAVELLING = EntityDataManager.createKey(FatSealEntity.class,
@@ -125,6 +131,7 @@ public class FatSealEntity extends AnimalEntity {
 		this.goalSelector.addGoal(3, new FollowParentGoal(this, 1.1D));
 		// this.goalSelector.addGoal(3, new FatSealEntity.GetOutOfWaterGoal(this,
 		// 1.0D));
+		this.goalSelector.addGoal(4, new FatSealGoHomeGoal(this, 1.0D));
 		this.goalSelector.addGoal(4, new MeleeAttackGoal(this, 1.0D, false));
 		this.goalSelector.addGoal(4, new FatSealPlayerTemptGoal(this, 1.0D, TEMPTATION_ITEMS));
 		this.goalSelector.addGoal(6, new ModGoToWaterGoal(this, 1.0D, 16));
@@ -147,6 +154,22 @@ public class FatSealEntity extends AnimalEntity {
 		this.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.25D);
 		this.getAttributes().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
 		this.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(6.0D);
+	}
+
+	public void setHome(BlockPos position) {
+		this.dataManager.set(HOME_POS, position);
+	}
+
+	public BlockPos getHome() {
+		return this.dataManager.get(HOME_POS);
+	}
+
+	public boolean isGoingHome() {
+		return this.dataManager.get(GOING_HOME);
+	}
+
+	public void setGoingHome(boolean isGoingHome) {
+		this.dataManager.set(GOING_HOME, isGoingHome);
 	}
 
 	public boolean isEating() {
@@ -183,6 +206,8 @@ public class FatSealEntity extends AnimalEntity {
 
 	protected void registerData() {
 		super.registerData();
+		this.dataManager.register(HOME_POS, BlockPos.ZERO);
+		this.dataManager.register(GOING_HOME, false);
 		this.dataManager.register(TRAVEL_POS, BlockPos.ZERO);
 		this.dataManager.register(TRAVELLING, false);
 		this.dataManager.register(EATING_TICKS, 0);
@@ -190,12 +215,19 @@ public class FatSealEntity extends AnimalEntity {
 
 	public void writeAdditional(CompoundNBT compound) {
 		super.writeAdditional(compound);
+		compound.putInt("HomePosX", this.getHome().getX());
+		compound.putInt("HomePosY", this.getHome().getY());
+		compound.putInt("HomePosZ", this.getHome().getZ());
 		compound.putInt("TravelPosX", this.getTravelPos().getX());
 		compound.putInt("TravelPosY", this.getTravelPos().getY());
 		compound.putInt("TravelPosZ", this.getTravelPos().getZ());
 	}
 
 	public void readAdditional(CompoundNBT compound) {
+		int i = compound.getInt("HomePosX");
+		int j = compound.getInt("HomePosY");
+		int k = compound.getInt("HomePosZ");
+		this.setHome(new BlockPos(i, j, k));
 		super.readAdditional(compound);
 		int l = compound.getInt("TravelPosX");
 		int i1 = compound.getInt("TravelPosY");
@@ -205,12 +237,13 @@ public class FatSealEntity extends AnimalEntity {
 
 	public static boolean canSpawn(EntityType<FatSealEntity> entityTypeIn, IWorld world, SpawnReason reason,
 			BlockPos blockpos, Random rand) {
-		return blockpos.getY() < world.getSeaLevel() + 4 && world.getLightSubtracted(blockpos, 0) > 8;
+		return blockpos.getY() < world.getSeaLevel() + 4 && (world.getBlockState(blockpos.down()).getBlock().getTags() == BlockTags.ICE || world.getBlockState(blockpos.down()).getBlock() == Blocks.SNOW) && world.getLightSubtracted(blockpos, 0) > 8;
 	}
 
 	@Nullable
 	public ILivingEntityData onInitialSpawn(IWorld worldIn, DifficultyInstance difficultyIn, SpawnReason reason,
 			@Nullable ILivingEntityData spawnDataIn, @Nullable CompoundNBT dataTag) {
+		this.setHome(new BlockPos(this));
 		this.setTravelPos(BlockPos.ZERO);
 		return super.onInitialSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
 	}
@@ -228,7 +261,8 @@ public class FatSealEntity extends AnimalEntity {
 			this.moveRelative(0.1F, positionIn);
 			this.move(MoverType.SELF, this.getMotion());
 			this.setMotion(this.getMotion().scale(0.9D));
-			if (this.getAttackTarget() == null) {
+			if (this.getAttackTarget() == null
+					&& (!this.isGoingHome() || !this.getHome().withinDistance(this.getPositionVec(), 20.0D))) {
 				this.setMotion(this.getMotion().add(0.0D, -0.005D, 0.0D));
 			}
 		} else {
@@ -333,9 +367,9 @@ public class FatSealEntity extends AnimalEntity {
 
 	public void livingTick() {
 		super.livingTick();
-//		if (this.collidedHorizontally && this.isInWater() && !this.world.isRemote && this.isAlive()) {
-//			this.getNavigator().clearPath();
-//		}
+		if (this.collidedHorizontally && this.isInWater() && !this.world.isRemote && this.isAlive()) {
+			this.getNavigator().clearPath();
+		}
 		if (this.isInWater() && !this.world.isRemote && this.isAlive()) {
 			++this.ticksInWater;
 		}
@@ -529,7 +563,7 @@ public class FatSealEntity extends AnimalEntity {
 
 	@SuppressWarnings("deprecation")
 	public float getBlockPathWeight(BlockPos pos, IWorldReader worldIn) {
-		if (worldIn.getFluidState(pos).isTagged(FluidTags.WATER)) {
+		if (!this.isGoingHome() && worldIn.getFluidState(pos).isTagged(FluidTags.WATER)) {
 			return 10.0F;
 		}
 
@@ -620,7 +654,9 @@ public class FatSealEntity extends AnimalEntity {
 		private void updateSpeed() {
 			if (this.seal.isInWater()) {
 				this.seal.setMotion(this.seal.getMotion().add(0.0D, 0.005D, 0.0D));
-				//this.seal.setAIMoveSpeed(Math.max(this.seal.getAIMoveSpeed() / 2.0F, 0.08F));
+				if (!this.seal.getHome().withinDistance(this.seal.getPositionVec(), 16.0D)) {
+					this.seal.setAIMoveSpeed(Math.max(this.seal.getAIMoveSpeed() / 2.0F, 0.08F));
+				}
 				this.seal.setJumping(false);
 
 			}
@@ -724,8 +760,8 @@ public class FatSealEntity extends AnimalEntity {
 		 * Returns whether the EntityAIBase should begin execution.
 		 */
 		public boolean shouldExecute() {
-			return this.seal.isInWater() && !this.seal.isSwimmingWithPlayer && !this.seal.isGettingTempted
-					&& this.seal.getAttackTarget() == null; // NEEDS
+			return !this.seal.isGoingHome() && this.seal.isInWater() && !this.seal.isSwimmingWithPlayer
+					&& !this.seal.isGettingTempted && this.seal.getAttackTarget() == null; // NEEDS
 			// TESTING
 		}
 
@@ -783,7 +819,7 @@ public class FatSealEntity extends AnimalEntity {
 		 * Returns whether an in-progress EntityAIBase should continue executing
 		 */
 		public boolean shouldContinueExecuting() {
-			return !this.seal.getNavigator().noPath() && !this.noPath;
+			return !this.seal.isGoingHome() && !this.seal.getNavigator().noPath() && !this.noPath;
 		}
 
 		/**

@@ -1,18 +1,19 @@
 package com.prohitman.crittersaroundtheworldmod.entities.goals;
 
+import com.prohitman.crittersaroundtheworldmod.entities.FatSealEntity;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.ai.goal.MoveToBlockGoal;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorldReader;
 
 public class ModGoToWaterGoal extends MoveToBlockGoal {
-	private final CreatureEntity creature;
+	private final FatSealEntity seal;
 
-	public ModGoToWaterGoal(CreatureEntity creatureIn, double speedIn, int length) {
-		super(creatureIn, speedIn, length);
-		this.creature = creatureIn;
+	public ModGoToWaterGoal(FatSealEntity sealIn, double speedIn, int length) {
+		super(sealIn, speedIn, length);
+		this.seal = sealIn;
 		this.field_203112_e = -2;
 	}
 
@@ -24,7 +25,8 @@ public class ModGoToWaterGoal extends MoveToBlockGoal {
 	 * Returns whether the EntityAIBase should begin execution.
 	 */
 	public boolean shouldExecute() {
-		return !this.creature.isInWater() ? super.shouldExecute() : false;
+		return !this.seal.isGoingHome() && !this.seal.isInWater() ? super.shouldExecute()
+				: false;
 	}
 
 	/**

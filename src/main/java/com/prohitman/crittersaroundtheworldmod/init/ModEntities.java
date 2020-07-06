@@ -36,11 +36,11 @@ public class ModEntities {
 	public static void registerEntityWorldSpawns() {
 		for (Biome biome : ForgeRegistries.BIOMES) {
 			if (biome != null
-					&& (biome == Biomes.FROZEN_OCEAN || biome == Biomes.ICE_SPIKES || biome == Biomes.SNOWY_BEACH)) {
-				biome.getSpawns(EntityClassification.CREATURE).add(new SpawnListEntry(FAT_SEAL_ENTITY.get(), 4, 2, 5));
+					&& (biome == Biomes.ICE_SPIKES || biome == Biomes.SNOWY_BEACH)) {
+				biome.getSpawns(EntityClassification.CREATURE).add(new SpawnListEntry(FAT_SEAL_ENTITY.get(), 4, 5, 10));
 			}
 
-			if ((biome.getCategory() == Biome.Category.TAIGA && biome.getCategory() == Biome.Category.FOREST)
+			if ((biome.getCategory() == Biome.Category.TAIGA || biome.getCategory() == Biome.Category.FOREST)
 					&& biome != null) {
 				biome.getSpawns(EntityClassification.AMBIENT).add(new SpawnListEntry(FIRE_FLY_ENTITY.get(), 25, 1, 6));
 			}
