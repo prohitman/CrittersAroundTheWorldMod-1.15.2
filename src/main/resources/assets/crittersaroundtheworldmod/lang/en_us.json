@@ -1,0 +1,25 @@
+{
+	"language.name": "English",
+	"language.region": "United States",
+	"language.code": "en_us",
+	
+	//Items
+	"item.crittersaroundtheworldmod.fat_seal_entity_egg": "Fat Seal Spawn Egg",
+	"item.crittersaroundtheworldmod.fire_fly_entity_egg": "FireFly Spawn Egg",
+	
+	//Blocks
+	"block.crittersaroundtheworldmod.jar_catm": "Jar",
+	"block.crittersaroundtheworldmod.jar_o_firefly": "Jar O' FireFly",
+	
+	//Entities
+	"entity.crittersaroundtheworldmod.fat_seal_entity": "Fat Seal",
+	"entity.crittersaroundtheworldmod.fire_fly_entity": "FireFly",
+	
+	//Sounds
+  	"subtitles.fat_seal.land_ambient": "Fat Seal Barks",
+  	"subtitles.fat_seal.water_ambient": "Fat Seal's scary sound",
+  	"subtitles.fat_seal.hurt": "Fat Seal Hurts",
+  	"subtitles.fat_seal.death": "Fat Seal Dies"
+	
+	//Tab
+}

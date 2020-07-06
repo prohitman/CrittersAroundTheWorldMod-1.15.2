@@ -1,0 +1,46 @@
+{   "credit": "Made with Blockbench",
+	"parent": "minecraft:block/block",
+	"ambientocclusion": false,
+	"textures": {
+		"1": "crittersaroundtheworldmod:block/jar_catm",
+		"particle": "crittersaroundtheworldmod:block/jar_catm"
+	},
+	"elements": [
+		{
+			"name": "Bottle",
+			"from": [4, 0, 4],
+			"to": [12, 10, 12],
+			"rotation": {"angle": 0, "axis": "z", "origin": [8, 5, 8]},
+			"faces": {
+				"north": {"uv": [2, 4, 4, 9], "texture": "#1"},
+				"east": {"uv": [0, 4, 2, 9], "texture": "#1"},
+				"south": {"uv": [6, 4, 8, 9], "texture": "#1"},
+				"west": {"uv": [4, 4, 6, 9], "texture": "#1"},
+				"up": {"uv": [4, 4, 2, 0], "texture": "#1"},
+				"down": {"uv": [6, 0, 4, 4], "texture": "#1"}
+			}
+		},
+		{
+			"name": "Tube",
+			"from": [5, 10, 5],
+			"to": [11, 11, 11],
+			"rotation": {"angle": 0, "axis": "z", "origin": [8, 9, 8]},
+			"faces": {
+				"north": {"uv": [1.5, 12, 3, 12.5], "texture": "#1"},
+				"east": {"uv": [0, 12, 1.5, 12.5], "texture": "#1"},
+				"south": {"uv": [4.5, 12, 6, 12.5], "texture": "#1"},
+				"west": {"uv": [3, 12, 4.5, 12.5], "texture": "#1"},
+				"up": {"uv": [3, 12, 1.5, 9], "texture": "#1"},
+				"down": {"uv": [4.5, 9, 3, 12], "texture": "#1"}
+			}
+		}
+	],
+	"display": {},
+	"groups": [
+		{
+			"name": "jar",
+			"origin": [8, 8, 8],
+			"children": [0, 1]
+		}
+	]
+}
