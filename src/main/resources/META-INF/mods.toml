@@ -56,15 +56,8 @@ lllll
     side="BOTH"
 # Here's another dependency
 [[dependencies.crittersaroundtheworldmod]]
-    modId="minecraft"
-    mandatory=true
-    versionRange="[1.15.2]"
-    ordering="NONE"
-    side="BOTH"
-    
-    [[dependencies.dragonage]]
     modId="citadel"
     mandatory=true
-    versionRange="[1.1.11,)"
-    ordering="AFTER"
+    versionRange="[1.1.11]"
+    ordering="NONE"
     side="BOTH"

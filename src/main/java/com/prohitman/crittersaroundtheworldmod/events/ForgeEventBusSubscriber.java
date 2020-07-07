@@ -66,6 +66,7 @@ public class ForgeEventBusSubscriber {
 					player.dropItem(new ItemStack(ModBlocks.JAR_O_FIREFLY.get().asItem()), false);
 				}
 				event.getTarget().remove();
+				player.swing(hand, false);
 			}
 		}
 	}

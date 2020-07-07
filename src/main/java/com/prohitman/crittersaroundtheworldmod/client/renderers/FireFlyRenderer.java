@@ -13,23 +13,21 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class FireFlyRenderer extends MobRenderer<FireFlyEntity, FireFlyModel<FireFlyEntity>>
-{
-	private static final ResourceLocation resourcelocation = new ResourceLocation(CrittersAroundTheWorld.MOD_ID, "textures/entity/fire_fly.png");
+public class FireFlyRenderer extends MobRenderer<FireFlyEntity, FireFlyModel<FireFlyEntity>> {
+	private static final ResourceLocation resourcelocation = new ResourceLocation(CrittersAroundTheWorld.MOD_ID,
+			"textures/entity/fire_fly.png");
 
-	public FireFlyRenderer(EntityRendererManager renderManagerIn) 
-	{
+	public FireFlyRenderer(EntityRendererManager renderManagerIn) {
 		super(renderManagerIn, new FireFlyModel<>(), 0.1F);
 		this.addLayer(new FireFlyBumLayerRenderer<>(this));
 	}
 
-	public ResourceLocation getEntityTexture(FireFlyEntity entity) 
-	{
+	public ResourceLocation getEntityTexture(FireFlyEntity entity) {
 		return resourcelocation;
 	}
-	
-	protected void preRenderCallback(FireFlyEntity entitylivingbaseIn, MatrixStack matrixStackIn, float partialTickTime) 
-	{
-	      matrixStackIn.scale(0.5F, 0.5F, 0.5F);
-	}	
+
+	protected void preRenderCallback(FireFlyEntity entitylivingbaseIn, MatrixStack matrixStackIn,
+			float partialTickTime) {
+		matrixStackIn.scale(0.8F, 0.8F, 0.8F);
+	}
 }

@@ -1,24 +1,32 @@
 package com.prohitman.crittersaroundtheworldmod.entities;
 
+import java.util.EnumSet;
 import java.util.Random;
+
+import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityPredicate;
+import net.minecraft.entity.AgeableEntity;
+import net.minecraft.entity.CreatureAttribute;
 import net.minecraft.entity.EntitySize;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.Pose;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.passive.AmbientEntity;
-import net.minecraft.entity.passive.BatEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.entity.ai.RandomPositionGenerator;
+import net.minecraft.entity.ai.controller.FlyingMovementController;
+import net.minecraft.entity.ai.controller.LookController;
+import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.ai.goal.SwimGoal;
+import net.minecraft.entity.passive.AnimalEntity;
+import net.minecraft.entity.passive.IFlyingAnimal;
+import net.minecraft.fluid.Fluid;
+import net.minecraft.pathfinding.FlyingPathNavigator;
+import net.minecraft.pathfinding.PathNavigator;
+import net.minecraft.pathfinding.PathNodeType;
+import net.minecraft.tags.Tag;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
@@ -28,52 +36,64 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class FireFlyEntity extends AmbientEntity {
-	private static final DataParameter<Byte> WALL_HANGING = EntityDataManager.createKey(BatEntity.class,
-			DataSerializers.BYTE);
-	private static final EntityPredicate ENTITY_PREDICATE = (new EntityPredicate()).setDistance(4.0D)
-			.allowFriendlyFire();
-	private BlockPos blockpos = new BlockPos(this);
-	private BlockPos blockposSouth = blockpos.south();
-	private BlockPos blockposNorth = blockpos.north();
-	private BlockPos blockposEast = blockpos.east();
-	private BlockPos blockposWest = blockpos.west();
-	private BlockPos blockposUp = blockpos.up();
-	private BlockPos blockposDown = blockpos.down();
-	private BlockPos spawnPosition;
+public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 
-	public FireFlyEntity(EntityType<? extends AmbientEntity> type, World worldIn) {
+	private float rollAmount;
+	private float rollAmountO;
+	private int underWaterTicks;
+
+	public FireFlyEntity(EntityType<? extends AnimalEntity> type, World worldIn) {
 		super(type, worldIn);
-		this.setIsFireFlyHanging(true);
+		this.moveController = new FlyingMovementController(this, 20, true);
+		this.lookController = new LookController(this);
+		this.setPathPriority(PathNodeType.WATER, -1.0F);
+		this.setPathPriority(PathNodeType.COCOA, -1.0F);
+		this.setPathPriority(PathNodeType.FENCE, -1.0F);
 	}
 
-	protected void registerData() {
-		super.registerData();
-		this.dataManager.register(WALL_HANGING, (byte) 0);
-	}
-
-	@SuppressWarnings("deprecation")
-	public float getBlockPathWeight(BlockPos pos, IWorldReader worldIn) {
-		return worldIn.getBlockState(pos).isAir() ? 10.0F : 0.0F;
+	@Override
+	protected void registerGoals() {
+		super.registerGoals();
+		this.goalSelector.addGoal(8, new FireFlyEntity.WanderGoal());
+		this.goalSelector.addGoal(9, new SwimGoal(this));
 	}
 
 	@Override
 	protected void registerAttributes() {
 		super.registerAttributes();
-		this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(3.0D);
+		this.getAttributes().registerAttribute(SharedMonsterAttributes.FLYING_SPEED);
+		this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(5.0D);
+		this.getAttribute(SharedMonsterAttributes.FLYING_SPEED).setBaseValue((double) 0.6F);
+		this.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue((double) 0.3F);
 	}
 
-//	public static boolean canSpawn(EntityType<FireFlyEntity> entityTypeIn, IWorld world, SpawnReason reason,
-//			BlockPos blockpos, Random rand) {
-//		return blockpos.getY() < world.getSeaLevel() + 8 && world.getLight(blockpos) < 8;
-//	}
+	public CreatureAttribute getCreatureAttribute() {
+		return CreatureAttribute.ARTHROPOD;
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public float getBodyPitch(float p_226455_1_) {
+		return MathHelper.lerp(p_226455_1_, this.rollAmountO, this.rollAmount);
+	}
+
+	private void updateBodyPitch() {
+		this.rollAmountO = this.rollAmount;
+		this.rollAmount = Math.max(0.0F, this.rollAmount - 0.24F);
+
+	}
 
 	public static boolean canSpawn(EntityType<FireFlyEntity> entityTypeIn, IWorld world, SpawnReason reason,
 			BlockPos blockpos, Random rand) {
 		Block block = world.getBlockState(blockpos.down()).getBlock();
 		return (block == Blocks.DIRT || block == Blocks.COARSE_DIRT || block == Blocks.PODZOL
 				|| block == Blocks.GRASS_BLOCK || block == Blocks.AIR) && world.getLightSubtracted(blockpos, 0) > 12;
+	}
+
+	public float getBlockPathWeight(BlockPos pos, IWorldReader worldIn) {
+		return worldIn.getBlockState(pos).isAir(worldIn, pos) ? 10.0F : 0.0F;
 	}
 
 	public boolean canBePushed() {
@@ -99,12 +119,15 @@ public class FireFlyEntity extends AmbientEntity {
 		return SoundEvents.ENTITY_BEE_HURT;
 	}
 
-	protected void collideWithEntity(Entity entityIn) {
-
+	protected float getSoundVolume() {
+		return 0.4F;
 	}
 
-	protected void collideWithNearbyEntities() {
+	protected void updateFallState(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
+	}
 
+	protected float getStandingEyeHeight(Pose poseIn, EntitySize sizeIn) {
+		return sizeIn.height * 0.5F;
 	}
 
 	protected boolean canTriggerWalking() {
@@ -115,130 +138,95 @@ public class FireFlyEntity extends AmbientEntity {
 		return false;
 	}
 
-	protected void updateFallState(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
+	protected void handleFluidJump(Tag<Fluid> fluidTag) {
+		this.setMotion(this.getMotion().add(0.0D, 0.01D, 0.0D));
 	}
 
-	/**
-	 * Return whether this entity should NOT trigger a pressure plate or a tripwire.
-	 */
-	public boolean doesEntityNotTriggerPressurePlate() {
-		return true;
-	}
-
-	public boolean getIsFireFlyHanging() {
-		return (this.dataManager.get(WALL_HANGING) & 1) != 0;
-	}
-
-	public void setIsFireFlyHanging(boolean isHanging) {
-		byte b0 = this.dataManager.get(WALL_HANGING);
-		if (isHanging) {
-			this.dataManager.set(WALL_HANGING, (byte) (b0 | 1));
+	@Override
+	protected void updateAITasks() {
+		super.updateAITasks();
+		if (this.isInWaterOrBubbleColumn()) {
+			++this.underWaterTicks;
 		} else {
-			this.dataManager.set(WALL_HANGING, (byte) (b0 & -2));
+			this.underWaterTicks = 0;
 		}
 
+		if (this.underWaterTicks > 20) {
+			this.attackEntityFrom(DamageSource.DROWN, 1.0F);
+		}
 	}
 
 	public void tick() {
 		super.tick();
-		if (this.getIsFireFlyHanging()) {
-			this.setMotion(Vec3d.ZERO);
-			this.setRawPosition(this.getPosX(),
-					(double) MathHelper.floor(this.getPosY()) + 0.5D - (double) this.getHeight(), this.getPosZ());
-		} else {
-			this.setMotion(this.getMotion().mul(1.0D, 0.6D, 1.0D)); // was 1.0 0.6 1.0
-		}
+		this.updateBodyPitch();
 	}
 
-	protected void updateAITasks() {
-		super.updateAITasks();
-
-		if (this.getIsFireFlyHanging()) {
-			if (!this.world.getBlockState(blockposDown).isNormalCube(this.world, blockpos)
-					&& !this.world.getBlockState(blockposUp).isNormalCube(this.world, blockpos)
-					&& (this.world.getBlockState(blockposNorth).isNormalCube(this.world, blockpos)
-							|| this.world.getBlockState(blockposSouth).isNormalCube(this.world, blockpos)
-							|| this.world.getBlockState(blockposEast).isNormalCube(this.world, blockpos)
-							|| this.world.getBlockState(blockposWest).isNormalCube(this.world, blockpos))) {
-				if (this.rand.nextInt(200) == 0) {
-					this.rotationYawHead = (float) this.rand.nextInt(360);
-				}
-
-				if (this.world.getClosestPlayer(ENTITY_PREDICATE, this) != null) {
-					this.setIsFireFlyHanging(false);
-					this.world.playEvent((PlayerEntity) null, 1025, blockpos, 0);
-				}
-			} else {
-				this.setIsFireFlyHanging(false);
-				this.world.playEvent((PlayerEntity) null, 1025, blockpos, 0);
-			}
-		} else {
-			if (this.spawnPosition != null
-					&& (!this.world.isAirBlock(this.spawnPosition) || this.spawnPosition.getY() < 1)) {
-				this.spawnPosition = null;
-			}
-
-			if (this.spawnPosition == null || this.rand.nextInt(30) == 0
-					|| this.spawnPosition.withinDistance(this.getPositionVec(), 2.0D)) {
-				this.spawnPosition = new BlockPos(
-						this.getPosX() + (double) this.rand.nextInt(7) - (double) this.rand.nextInt(7),
-						this.getPosY() + (double) this.rand.nextInt(6) - 2.0D,
-						this.getPosZ() + (double) this.rand.nextInt(7) - (double) this.rand.nextInt(7));
-			}
-
-			double d0 = (double) this.spawnPosition.getX() + 0.5D - this.getPosX();
-			double d1 = (double) this.spawnPosition.getY() + 0.1D - this.getPosY();
-			double d2 = (double) this.spawnPosition.getZ() + 0.5D - this.getPosZ();
-			Vec3d vec3d = this.getMotion();
-			Vec3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F,
-					(Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F,
-					(Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
-			this.setMotion(vec3d1);
-			float f = (float) (MathHelper.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
-			float f1 = MathHelper.wrapDegrees(f - this.rotationYaw);
-			this.moveForward = 0.5F;
-			this.rotationYaw += f1;
-			if (this.rand.nextInt(100) == 0
-					&& !this.world.getBlockState(blockposDown).isNormalCube(this.world, blockposDown)
-					&& !this.world.getBlockState(blockposUp).isNormalCube(this.world, blockposUp)
-					&& (this.world.getBlockState(blockposNorth).isNormalCube(this.world, blockposNorth)
-							|| this.world.getBlockState(blockposSouth).isNormalCube(this.world, blockposSouth)
-							|| this.world.getBlockState(blockposEast).isNormalCube(this.world, blockposEast)
-							|| this.world.getBlockState(blockposWest).isNormalCube(this.world, blockposWest))) {
-				this.setIsFireFlyHanging(true);
-			}
-		}
-	}
-
-	protected float getStandingEyeHeight(Pose poseIn, EntitySize sizeIn) {
-		return sizeIn.height / 2.0F;
+	@Override
+	public AgeableEntity createChild(AgeableEntity ageable) {
+		return null;
 	}
 
 	/**
-	 * Called when the entity is attacked.
+	 * Returns new PathNavigateGround instance
 	 */
-	public boolean attackEntityFrom(DamageSource source, float amount) {
-		if (this.isInvulnerableTo(source)) {
-			return false;
-		} else {
-			if (!this.world.isRemote && this.getIsFireFlyHanging()) {
-				this.setIsFireFlyHanging(false);
+	protected PathNavigator createNavigator(World worldIn) {
+		FlyingPathNavigator flyingpathnavigator = new FlyingPathNavigator(this, worldIn) {
+			public boolean canEntityStandOnPos(BlockPos pos) {
+				return !this.world.getBlockState(pos.down()).isAir(worldIn, pos);
 			}
 
-			return super.attackEntityFrom(source, amount);
+			public void tick() {
+				super.tick();
+			}
+		};
+		flyingpathnavigator.setCanOpenDoors(false);
+		flyingpathnavigator.setCanSwim(false);
+		flyingpathnavigator.setCanEnterDoors(true);
+		return flyingpathnavigator;
+	}
+
+	class WanderGoal extends Goal {
+		WanderGoal() {
+			this.setMutexFlags(EnumSet.of(Goal.Flag.MOVE));
+		}
+
+		/**
+		 * Returns whether execution should begin. You can also read and cache any state
+		 * necessary for execution in this method as well.
+		 */
+		public boolean shouldExecute() {
+			return FireFlyEntity.this.navigator.noPath() && FireFlyEntity.this.rand.nextInt(10) == 0;
+		}
+
+		/**
+		 * Returns whether an in-progress EntityAIBase should continue executing
+		 */
+		public boolean shouldContinueExecuting() {
+			return FireFlyEntity.this.navigator.func_226337_n_();
+		}
+
+		/**
+		 * Execute a one shot task or start executing a continuous task
+		 */
+		public void startExecuting() {
+			Vec3d vec3d = this.getRandomLocation();
+			if (vec3d != null) {
+				FireFlyEntity.this.navigator.setPath(FireFlyEntity.this.navigator.getPathToPos(new BlockPos(vec3d), 1),
+						1.0D);
+			}
+
+		}
+
+		@Nullable
+		private Vec3d getRandomLocation() {
+			Vec3d vec3d;
+			vec3d = FireFlyEntity.this.getLook(0.0F);
+			Vec3d vec3d2 = RandomPositionGenerator.findAirTarget(FireFlyEntity.this, 8, 7, vec3d,
+					((float) Math.PI / 2F), 2, 1);
+			return vec3d2 != null ? vec3d2
+					: RandomPositionGenerator.findGroundTarget(FireFlyEntity.this, 8, 4, -2, vec3d,
+							(double) ((float) Math.PI / 2F));
 		}
 	}
 
-	/**
-	 * (abstract) Protected helper method to read subclass entity data from NBT.
-	 */
-	public void readAdditional(CompoundNBT compound) {
-		super.readAdditional(compound);
-		this.dataManager.set(WALL_HANGING, compound.getByte("FireFlyFlags"));
-	}
-
-	public void writeAdditional(CompoundNBT compound) {
-		super.writeAdditional(compound);
-		compound.putByte("FireFlyFlags", this.dataManager.get(WALL_HANGING));
-	}
 }

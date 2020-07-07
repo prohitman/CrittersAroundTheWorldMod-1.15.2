@@ -29,7 +29,7 @@ public class ModEntities {
 
 	public static final RegistryObject<EntityType<FireFlyEntity>> FIRE_FLY_ENTITY = ENTITY_TYPES.register(
 			"fire_fly_entity",
-			() -> EntityType.Builder.create(FireFlyEntity::new, EntityClassification.AMBIENT).size(0.3F, 0.1F)
+			() -> EntityType.Builder.create(FireFlyEntity::new, EntityClassification.CREATURE).size(0.6F, 0.4F)
 					.build(new ResourceLocation(CrittersAroundTheWorld.MOD_ID, "fire_fly_entity").toString()));
 
 	// Entity Spawn Utils
@@ -42,7 +42,7 @@ public class ModEntities {
 
 			if ((biome.getCategory() == Biome.Category.TAIGA || biome.getCategory() == Biome.Category.FOREST)
 					&& biome != null) {
-				biome.getSpawns(EntityClassification.AMBIENT).add(new SpawnListEntry(FIRE_FLY_ENTITY.get(), 20, 10, 20));// do 3 / 10
+				biome.getSpawns(EntityClassification.AMBIENT).add(new SpawnListEntry(FIRE_FLY_ENTITY.get(), 10, 3, 8));// do 3 / 10
 			}
 		}
 	}
