@@ -1,7 +1,7 @@
 package com.prohitman.crittersaroundtheworldmod.client.renderers.layers;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.prohitman.crittersaroundtheworldmod.client.models.FatSealModel;
+import com.prohitman.crittersaroundtheworldmod.client.models.AdvancedFatSealModel;
 import com.prohitman.crittersaroundtheworldmod.entities.FatSealEntity;
 
 import net.minecraft.client.Minecraft;
@@ -16,8 +16,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class FatSealHeldItemLayer extends LayerRenderer<FatSealEntity, FatSealModel<FatSealEntity>> {
-	public FatSealHeldItemLayer(IEntityRenderer<FatSealEntity, FatSealModel<FatSealEntity>> layerRendererContext) {
+public class FatSealHeldItemLayer extends LayerRenderer<FatSealEntity, AdvancedFatSealModel<FatSealEntity>> {
+	public FatSealHeldItemLayer(IEntityRenderer<FatSealEntity, AdvancedFatSealModel<FatSealEntity>> layerRendererContext) {
 		super(layerRendererContext);
 	}
 
