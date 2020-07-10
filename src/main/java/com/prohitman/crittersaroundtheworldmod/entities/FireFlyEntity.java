@@ -246,14 +246,19 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 //				this.world.playEvent((PlayerEntity) null, 1025, blockpos, 0);
 //			}
 
+			else if (this.getPosX() >= blockpos.getX() + 0.25) {
+				this.setIsFlyHanging(false);
+				this.world.playEvent((PlayerEntity) null, 1025, blockpos, 0);
+			}
+
 			else {
 				this.setIsFlyHanging(false);
 				this.world.playEvent((PlayerEntity) null, 1025, blockpos, 0);
 			}
 		}
 
-		else if (/* this.rand.nextInt(100) == 0 && */(this.world.getBlockState(blockpos1).isNormalCube(this.world,
-				blockpos1) || this.world.getBlockState(blockpos2).isNormalCube(this.world, blockpos2)
+		else if (this.rand.nextInt(100) == 0 && (this.world.getBlockState(blockpos1).isNormalCube(this.world, blockpos1)
+				|| this.world.getBlockState(blockpos2).isNormalCube(this.world, blockpos2)
 				|| this.world.getBlockState(blockpos3).isNormalCube(this.world, blockpos3)
 				|| this.world.getBlockState(blockpos4).isNormalCube(this.world, blockpos4)
 						&& this.collidedHorizontally)) {
@@ -280,7 +285,6 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 //				if (this.rand.nextInt(200) == 0) {
 //					this.rotationYawHead = (float) this.rand.nextInt(360);
 //				}
-//				this.getLookController().setLookPosition(blockpos.getX(), blockpos.getY(), blockpos.getZ(), 0, 0);
 				if (this.world.getBlockState(blockpos1).isNormalCube(this.world, blockpos)) {
 					this.getLookController().setLookPosition(vec3d.x + 0.5, vec3d.y, vec3d.z, blockpos1.getX() + 180f,
 							blockpos1.getZ());
@@ -313,9 +317,10 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 				// (double)this.getWidth(), this.getPosY(), this.getPosZ());
 			}
 			this.setMotion(Vec3d.ZERO);
+
 		} else {
-			this.setMotion(this.getMotion().mul(1.0D, 0.7D, 1.0D));
-			
+			this.setMotion(this.getMotion().mul(1.0D, 0.8D, 1.0D));
+
 		}
 	}
 
