@@ -95,6 +95,13 @@ public class AdvancedFatSealModel<T extends FatSealEntity> extends AdvancedEntit
 	public void setRotationAngles(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks,
 			float netHeadYaw, float headPitch) {
 		this.resetToDefaultPose();
+		// ageInTicks = entityIn.ticksExisted;
+		float f = 0.05f;
+		float globalSpeed = 1f;
+		// float globalHight = 1.0f;
+		float globalDegree = 0.5f;
+			swing(this.RArm, 1f * globalSpeed, 1f * globalDegree, false, 0, 0, ageInTicks, f);
+			flap(this.Whiskers, 1f * globalSpeed, 2f * globalDegree, false, 0, 0, ageInTicks, f);
 	}
 
 	@Override

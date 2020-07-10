@@ -90,7 +90,7 @@ public class FireFlyModel<T extends FireFlyEntity> extends SegmentedModel<T> {
 		modelRenderer.rotateAngleY = y;
 		modelRenderer.rotateAngleZ = z;
 	}
-	
+
 	@Override
 	public void setLivingAnimations(T entityIn, float limbSwing, float limbSwingAmount, float partialTick) {
 		this.bodyPitch = entityIn.getBodyPitch(partialTick);
@@ -114,46 +114,62 @@ public class FireFlyModel<T extends FireFlyEntity> extends SegmentedModel<T> {
 		this.RWing.rotateAngleX = 0.0F;
 		this.Antenne.rotateAngleX = 0.0F;
 		this.Body.rotateAngleX = 0.0F;
-		this.Body.rotationPointY = 19.0F;
+		this.Body.rotationPointY = 19.0F;// 19
 		boolean flag = entityIn.onGround && entityIn.getMotion().lengthSquared() < 1.0E-7D;
-		if (flag) {
-			this.RWing.rotateAngleY = -0.2618F;
-			this.RWing.rotateAngleZ = 0.0F;
-			this.LWing.rotateAngleX = 0.0F;
-			this.LWing.rotateAngleY = 0.2618F;
+		if (entityIn.getIsFlyHanging()) {
+			float f1 = MathHelper.cos(ageInTicks * 0.18F);
+			this.Body.rotateAngleX = -89.5f;
+			this.Antenne.rotateAngleX = f1 * (float) Math.PI * 0.03F;
+			this.LWing.rotateAngleY = 0.0F;
 			this.LWing.rotateAngleZ = 0.0F;
-			this.Leg1.rotateAngleX = 0.0F;
-			this.Leg2.rotateAngleX = 0.0F;
-			this.Leg3.rotateAngleX = 0.0F;
-		} else {
-			float f = ageInTicks * 2.1F;
+			this.RWing.rotateAngleZ = 0.0F;
 			this.RWing.rotateAngleY = 0.0F;
-			this.RWing.rotateAngleZ = MathHelper.cos(f) * (float) Math.PI * 0.15F;
-			this.LWing.rotateAngleX = this.RWing.rotateAngleX;
-			this.LWing.rotateAngleY = this.RWing.rotateAngleY;
-			this.LWing.rotateAngleZ = -this.RWing.rotateAngleZ;
-			this.Leg1.rotateAngleX = ((float) Math.PI / 4F);
-			this.Leg2.rotateAngleX = ((float) Math.PI / 4F);
-			this.Leg3.rotateAngleX = ((float) Math.PI / 4F);
+			
+		} else if (!entityIn.getIsFlyHanging()) {
+			if (flag/* && !entityIn.getIsFlyHanging() */) {
+				this.RWing.rotateAngleY = -0.2618F;
+				this.RWing.rotateAngleZ = 0.0F;
+				this.LWing.rotateAngleX = 0.0F;
+				this.LWing.rotateAngleY = 0.2618F;
+				this.LWing.rotateAngleZ = 0.0F;
+				this.Leg1.rotateAngleX = 0.0F;
+				this.Leg2.rotateAngleX = 0.0F;
+				this.Leg3.rotateAngleX = 0.0F;
+			} else /* if (!entityIn.getIsFlyHanging()) */ {
+				float f = ageInTicks * 2.1F;
+				this.RWing.rotateAngleY = 0.0F;
+				this.RWing.rotateAngleZ = MathHelper.cos(f) * (float) Math.PI * 0.15F;
+				this.LWing.rotateAngleX = this.RWing.rotateAngleX;
+				this.LWing.rotateAngleY = this.RWing.rotateAngleY;
+				this.LWing.rotateAngleZ = -this.RWing.rotateAngleZ;
+				this.Leg1.rotateAngleX = ((float) Math.PI / 4F);
+				this.Leg2.rotateAngleX = ((float) Math.PI / 4F);
+				this.Leg3.rotateAngleX = ((float) Math.PI / 4F);
+				this.Body.rotateAngleX = 0.0F;
+				this.Body.rotateAngleY = 0.0F;
+				this.Body.rotateAngleZ = 0.0F;
+			}
+//			if (!entityIn.getIsFlyHanging()) {
 			this.Body.rotateAngleX = 0.0F;
 			this.Body.rotateAngleY = 0.0F;
 			this.Body.rotateAngleZ = 0.0F;
-		}
+//			}
+			if (!flag/* && !entityIn.getIsFlyHanging() */) {
+				float f1 = MathHelper.cos(ageInTicks * 0.18F);
+				this.Body.rotateAngleX = 0.1F + f1 * (float) Math.PI * 0.025F;
+				this.Antenne.rotateAngleX = f1 * (float) Math.PI * 0.03F;
+				this.Leg1.rotateAngleX = -f1 * (float) Math.PI * 0.1F + ((float) Math.PI / 8F);
+				this.Leg3.rotateAngleX = -f1 * (float) Math.PI * 0.05F + ((float) Math.PI / 4F);
+				this.Body.rotationPointY = 19.0F - MathHelper.cos(ageInTicks * 0.18F) * 0.9F;
+			}
 
-		this.Body.rotateAngleX = 0.0F;
-		this.Body.rotateAngleY = 0.0F;
-		this.Body.rotateAngleZ = 0.0F;
-		if (!flag) {
-			float f1 = MathHelper.cos(ageInTicks * 0.18F);
-			this.Body.rotateAngleX = 0.1F + f1 * (float) Math.PI * 0.025F;
-			this.Antenne.rotateAngleX = f1 * (float) Math.PI * 0.03F;
-			this.Leg1.rotateAngleX = -f1 * (float) Math.PI * 0.1F + ((float) Math.PI / 8F);
-			this.Leg3.rotateAngleX = -f1 * (float) Math.PI * 0.05F + ((float) Math.PI / 4F);
-			this.Body.rotationPointY = 19.0F - MathHelper.cos(ageInTicks * 0.18F) * 0.9F;
-		}
+			if (this.bodyPitch > 0.0F/* && !entityIn.getIsFlyHanging() */) {
+				this.Body.rotateAngleX = ModelUtils.func_228283_a_(this.Body.rotateAngleX, 3.0915928F, this.bodyPitch);
+			}
 
-		if (this.bodyPitch > 0.0F) {
-			this.Body.rotateAngleX = ModelUtils.func_228283_a_(this.Body.rotateAngleX, 3.0915928F, this.bodyPitch);
+			this.Leg1.showModel = true;
+			this.Leg2.showModel = true;
+			this.Leg3.showModel = true;
 		}
 	}
 
