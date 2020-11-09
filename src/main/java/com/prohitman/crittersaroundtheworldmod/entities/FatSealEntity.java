@@ -18,6 +18,7 @@ import com.prohitman.crittersaroundtheworldmod.init.ModEntities;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.dispenser.IPosition;
 import net.minecraft.entity.AgeableEntity;
 import net.minecraft.entity.CreatureAttribute;
 import net.minecraft.entity.Entity;
@@ -27,7 +28,6 @@ import net.minecraft.entity.ILivingEntityData;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.controller.JumpController;
@@ -68,6 +68,7 @@ import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
@@ -75,11 +76,13 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.IServerWorld;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -236,6 +239,7 @@ public class FatSealEntity extends AnimalEntity {
 		this.setTravelPos(new BlockPos(l, i1, j1));
 	}
 
+	@SuppressWarnings("deprecation")
 	public static boolean canSpawn(EntityType<FatSealEntity> entityTypeIn, IWorld world, SpawnReason reason,
 			BlockPos blockpos, Random rand) {
 		Block block = world.getBlockState(blockpos.down()).getBlock();
@@ -244,9 +248,9 @@ public class FatSealEntity extends AnimalEntity {
 	}
 
 	@Nullable
-	public ILivingEntityData onInitialSpawn(IWorld worldIn, DifficultyInstance difficultyIn, SpawnReason reason,
+	public ILivingEntityData onInitialSpawn(IServerWorld worldIn, DifficultyInstance difficultyIn, SpawnReason reason,
 			@Nullable ILivingEntityData spawnDataIn, @Nullable CompoundNBT dataTag) {
-		this.setHome(new BlockPos(this));
+		this.setHome(this.getPosition());
 		this.setTravelPos(BlockPos.ZERO);
 		return super.onInitialSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
 	}
@@ -259,7 +263,7 @@ public class FatSealEntity extends AnimalEntity {
 		return this.isInvulnerableTo(source) ? false : super.attackEntityFrom(source, amount);
 	}
 
-	public void travel(Vec3d positionIn) {
+	public void travel(Vector3d positionIn) {
 		if (this.isServerWorld() && this.isInWater()) {
 			this.moveRelative(0.1F, positionIn);
 			this.move(MoverType.SELF, this.getMotion());
@@ -278,7 +282,7 @@ public class FatSealEntity extends AnimalEntity {
 				&& (!this.moveController.isUpdating() || !(this.moveController.getY() > this.getPosY() + 0.5D))) {
 			Path path = this.navigator.getPath();
 			if (path != null && path.getCurrentPathIndex() < path.getCurrentPathLength()) {
-				Vec3d vec3d = path.getPosition(this);
+				Vector3d vec3d = path.getPosition(this);
 				if (vec3d.y > this.getPosY() + 0.5F) {
 					return 0.2F;// was 0.5
 				}
@@ -304,7 +308,7 @@ public class FatSealEntity extends AnimalEntity {
 		if (d0 > 0.0D) {
 			double d1 = horizontalMag(this.getMotion());
 			if (d1 < 0.01D) {
-				this.moveRelative(0.1F, new Vec3d(0.0D, 0.0D, 1.0D));
+				this.moveRelative(0.1F, new Vector3d(0.0D, 0.0D, 1.0D));
 			}
 		}
 
@@ -408,7 +412,7 @@ public class FatSealEntity extends AnimalEntity {
 	@OnlyIn(Dist.CLIENT)
 	public void handleStatusUpdate(byte id) {
 		if (id == 1) {
-			this.createRunningParticles();
+			this.func_233569_aL_();
 			this.jumpDuration = 10;
 			this.jumpTicks = 0;
 		} else {
@@ -449,12 +453,12 @@ public class FatSealEntity extends AnimalEntity {
 			this.playSound(SoundEvents.ENTITY_PANDA_EAT, 0.5F + 0.5F * (float) this.rand.nextInt(2),
 					(this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F + 1.0F);
 			for (int i = 0; i < 6; ++i) {
-				Vec3d vec3d = new Vec3d(((double) this.rand.nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D,
+				Vector3d vec3d = new Vector3d(((double) this.rand.nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D,
 						((double) this.rand.nextFloat() - 0.5D) * 0.1D);
 				vec3d = vec3d.rotatePitch(-this.rotationPitch * ((float) Math.PI / 180F));
 				vec3d = vec3d.rotateYaw(-this.rotationYaw * ((float) Math.PI / 180F));
 				double d0 = (double) (-this.rand.nextFloat()) * 0.6D - 0.3D;
-				Vec3d vec3d1 = new Vec3d((((double) this.rand.nextFloat() - 0.5D) * 0.5D), d0 + 0.35D,
+				Vector3d vec3d1 = new Vector3d((((double) this.rand.nextFloat() - 0.5D) * 0.5D), d0 + 0.35D,
 						1.0D + ((double) this.rand.nextFloat() - 0.5D) * 0.4D - 0.465D);
 				vec3d1 = vec3d1.rotateYaw(-this.renderYawOffset * ((float) Math.PI / 180F));
 				vec3d1 = vec3d1.add(this.getPosX(), this.getPosYEye(), this.getPosZ());
@@ -514,7 +518,7 @@ public class FatSealEntity extends AnimalEntity {
 			if (!fatsealentity$jumphelpercontroller.getIsJumping()) {
 				if (this.moveController.isUpdating() && this.ticksUntilJump == 0) {
 					Path path = this.navigator.getPath();
-					Vec3d vec3d = new Vec3d(this.moveController.getX(), this.moveController.getY(),
+					Vector3d vec3d = new Vector3d(this.moveController.getX(), this.moveController.getY(),
 							this.moveController.getZ());
 					if (path != null && path.getCurrentPathIndex() < path.getCurrentPathLength()) {
 						vec3d = path.getPosition(this);
@@ -531,10 +535,10 @@ public class FatSealEntity extends AnimalEntity {
 		this.wasOnGround = this.onGround;
 	}
 
-	public boolean processInteract(PlayerEntity player, Hand hand) {
+	public ActionResultType func_230254_b_(PlayerEntity player, Hand hand) {
 		ItemStack itemstack = player.getHeldItem(hand);
 		if (itemstack.getItem() instanceof SpawnEggItem) {
-			return super.processInteract(player, hand);
+			return super.func_230254_b_(player, hand);
 		} else if (this.isBreedingItem(itemstack)) {
 
 			if (this.isChild()) {
@@ -545,7 +549,7 @@ public class FatSealEntity extends AnimalEntity {
 				this.setInLove(player);
 			} else {
 				if (this.world.isRemote) { // was this.isInWater()
-					return false;
+					return ActionResultType.PASS;
 				}
 				this.setEating(true);
 				ItemStack itemstack1 = this.getItemStackFromSlot(EquipmentSlotType.MAINHAND);
@@ -558,9 +562,9 @@ public class FatSealEntity extends AnimalEntity {
 			}
 
 			player.swing(hand, true);
-			return true;
+			return ActionResultType.SUCCESS;
 		} else {
-			return false;
+			return ActionResultType.PASS;
 		}
 	}
 
@@ -744,11 +748,6 @@ public class FatSealEntity extends AnimalEntity {
 		}
 	}
 
-	@Override
-	public AgeableEntity createChild(AgeableEntity ageable) {
-		return ModEntities.FAT_SEAL_ENTITY.get().create(this.world);
-	}
-
 	static class TravelGoal extends Goal {
 		private final FatSealEntity seal;
 		private final double speed;
@@ -793,8 +792,8 @@ public class FatSealEntity extends AnimalEntity {
 		@SuppressWarnings("deprecation")
 		public void tick() {
 			if (this.seal.getNavigator().noPath()) {
-				Vec3d vec3d = new Vec3d(this.seal.getTravelPos());
-				Vec3d vec3d1 = RandomPositionGenerator.findRandomTargetTowardsScaled(this.seal, 16, 3, vec3d,
+				Vector3d vec3d = Vector3d.copyCenteredHorizontally(this.seal.getTravelPos());
+				Vector3d vec3d1 = RandomPositionGenerator.findRandomTargetTowardsScaled(this.seal, 16, 3, vec3d,
 						(double) ((float) Math.PI / 10F));
 				if (vec3d1 == null) {
 					vec3d1 = RandomPositionGenerator.findRandomTargetBlockTowards(this.seal, 8, 7, vec3d);
@@ -897,7 +896,7 @@ public class FatSealEntity extends AnimalEntity {
 		protected boolean shouldMoveTo(IWorldReader worldIn, BlockPos pos) {
 			BlockPos blockpos = pos.up();
 			return worldIn.isAirBlock(blockpos) && worldIn.isAirBlock(blockpos.up())
-					? worldIn.getBlockState(pos).isTopSolid(worldIn, pos, this.seal)
+					? worldIn.getBlockState(pos).isTopSolid(worldIn, pos, this.seal, null)
 					: false;
 		}
 
@@ -1078,5 +1077,10 @@ public class FatSealEntity extends AnimalEntity {
 			this.seal.isPaniced = false;
 			super.resetTask();
 		}
+	}
+
+	@Override
+	public AgeableEntity func_241840_a(ServerWorld world, AgeableEntity entity) {
+		return ModEntities.FAT_SEAL_ENTITY.get().create(this.world);
 	}
 }

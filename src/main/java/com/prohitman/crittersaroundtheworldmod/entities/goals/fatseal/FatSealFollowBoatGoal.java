@@ -9,13 +9,15 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.item.BoatEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
 public class FatSealFollowBoatGoal extends Goal {
 	private int updateCountdownTicks;
 	private final FatSealEntity mob;
-	private LivingEntity passenger;
+	private PlayerEntity passenger;
 	private ChaseBoatState state;
 
 	public FatSealFollowBoatGoal(FatSealEntity mob) {
@@ -65,7 +67,7 @@ public class FatSealFollowBoatGoal extends Goal {
 				this.mob.getBoundingBox().grow(5.0D))) {
 			if (boatentity.getControllingPassenger() != null
 					&& boatentity.getControllingPassenger() instanceof LivingEntity) {
-				this.passenger = (LivingEntity) boatentity.getControllingPassenger();
+				this.passenger = (PlayerEntity) boatentity.getControllingPassenger();
 				break;
 			}
 		}
@@ -97,9 +99,9 @@ public class FatSealFollowBoatGoal extends Goal {
 		if (--this.updateCountdownTicks <= 0) {
 			this.updateCountdownTicks = 10;
 			if (this.state == ChaseBoatState.GO_TO_BOAT) {
-				BlockPos blockpos = (new BlockPos(this.passenger));
+				BlockPos blockpos = this.passenger.getPosition().offset(this.passenger.getHorizontalFacing().getOpposite());
 						//.offset(this.passenger.getHorizontalFacing().getOpposite());
-				//blockpos = blockpos.add(0, -1, 0);
+				blockpos = blockpos.add(0, -1, 0);
 				this.mob.getNavigator().tryMoveToXYZ((double) blockpos.getX(), (double) blockpos.getY(),
 						(double) blockpos.getZ(), 1.0D);
 				if (this.mob.getDistance(this.passenger) < 4.0F) {
@@ -107,8 +109,8 @@ public class FatSealFollowBoatGoal extends Goal {
 					this.state = ChaseBoatState.GO_IN_BOAT_DIRECTION;
 				}
 			} else if (this.state == ChaseBoatState.GO_IN_BOAT_DIRECTION) {
-//				Direction direction = this.passenger.getAdjustedHorizontalFacing();
-				BlockPos blockpos1 = (new BlockPos(this.passenger));//.offset(direction, 10);
+				Direction direction = this.passenger.getAdjustedHorizontalFacing();
+				BlockPos blockpos1 = this.passenger.getPosition().offset(direction, 10);
 				this.mob.getNavigator().tryMoveToXYZ((double) blockpos1.getX(),
 						(double) (blockpos1.getY() - 1), (double) blockpos1.getZ(), 1.0D);
 				if (this.mob.getDistance(this.passenger) > 12.0F) {

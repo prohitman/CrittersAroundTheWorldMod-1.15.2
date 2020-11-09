@@ -115,7 +115,7 @@ public class FireFlyModel<T extends FireFlyEntity> extends SegmentedModel<T> {
 		this.Antenne.rotateAngleX = 0.0F;
 		this.Body.rotateAngleX = 0.0F;
 		this.Body.rotationPointY = 19.0F;// 19
-		boolean flag = entityIn.onGround && entityIn.getMotion().lengthSquared() < 1.0E-7D;
+		boolean flag = entityIn.isOnGround() && entityIn.getMotion().lengthSquared() < 1.0E-7D;
 		if (entityIn.getIsFlyHanging()) {
 			float f1 = MathHelper.cos(ageInTicks * 0.18F);
 			this.Body.rotateAngleX = -89.5f;

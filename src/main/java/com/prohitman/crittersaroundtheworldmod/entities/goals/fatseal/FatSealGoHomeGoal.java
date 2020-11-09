@@ -6,7 +6,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 public class FatSealGoHomeGoal extends Goal {
 	private final FatSealEntity seal;
@@ -71,8 +71,8 @@ public class FatSealGoHomeGoal extends Goal {
 		}
 
 		if (this.seal.getNavigator().noPath()) {
-			Vec3d vec3d = new Vec3d(blockpos);
-			Vec3d vec3d1 = RandomPositionGenerator.findRandomTargetTowardsScaled(this.seal, 16, 3, vec3d,
+			Vector3d vec3d = Vector3d.copyCenteredHorizontally(blockpos);
+			Vector3d vec3d1 = RandomPositionGenerator.findRandomTargetTowardsScaled(this.seal, 16, 3, vec3d,
 					(double) ((float) Math.PI / 10F));
 			if (vec3d1 == null) {
 				vec3d1 = RandomPositionGenerator.findRandomTargetBlockTowards(this.seal, 8, 7, vec3d);

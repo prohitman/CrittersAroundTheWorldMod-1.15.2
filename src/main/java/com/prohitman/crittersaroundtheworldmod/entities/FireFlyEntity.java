@@ -5,11 +5,14 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang3.Validate;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.AgeableEntity;
 import net.minecraft.entity.CreatureAttribute;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.EntitySize;
 import net.minecraft.entity.EntityType;
@@ -34,6 +37,7 @@ import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.tags.Tag;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.Direction;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
@@ -54,6 +58,7 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 	private float rollAmount;
 	private float rollAmountO;
 	private int underWaterTicks;
+	protected Direction facingDirection = Direction.SOUTH;
 
 	public FireFlyEntity(EntityType<? extends FireFlyEntity> type, World worldIn) {
 		super(type, worldIn);
@@ -160,6 +165,58 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		return true;
 	}
 
+//	protected void updateFacingWithBoundingBox(Direction facingDirectionIn) {
+//		if (this.getIsFlyHanging()) {
+//			Validate.notNull(facingDirectionIn);
+//			this.facingDirection = facingDirectionIn;
+//			if (facingDirectionIn.getAxis().isHorizontal()) {
+//				this.rotationPitch = 0.0F;
+//				this.rotationYaw = (float) (this.facingDirection.getHorizontalIndex() * 90);
+//			} else {
+//				this.rotationPitch = (float) (-90 * facingDirectionIn.getAxisDirection().getOffset());
+//				this.rotationYaw = 0.0F;
+//			}
+//
+//			this.prevRotationPitch = this.rotationPitch;
+//			this.prevRotationYaw = this.rotationYaw;
+//		}
+//	}
+
+	@Override
+	public void applyEntityCollision(Entity entityIn) {
+		if (!this.isRidingSameEntity(entityIn)) {
+			if (!entityIn.noClip && !this.noClip) {
+				double d0 = entityIn.getPosX() - this.getPosX();
+				double d1 = entityIn.getPosZ() - this.getPosZ();
+				double d2 = MathHelper.absMax(d0, d1);
+				if (d2 >= (double) 0.01F) {
+					d2 = (double) MathHelper.sqrt(d2);
+					d0 = d0 / d2;
+					d1 = d1 / d2;
+					double d3 = 1.0D / d2;
+					if (d3 > 1.0D) {
+						d3 = 1.0D;
+					}
+
+					d0 = d0 * d3;
+					d1 = d1 * d3;
+					d0 = d0 * (double) 0.05F;
+					d1 = d1 * (double) 0.05F;
+					d0 = d0 * (double) (1.0F - this.entityCollisionReduction);
+					d1 = d1 * (double) (1.0F - this.entityCollisionReduction);
+					if (!this.isBeingRidden()) {
+						this.addVelocity(-d0, 0.0D, -d1);
+					}
+
+					if (!entityIn.isBeingRidden()) {
+						entityIn.addVelocity(d0, 0.0D, d1);
+					}
+				}
+
+			}
+		}
+	}
+
 	/**
 	 * Return whether this entity should NOT trigger a pressure plate or a tripwire.
 	 */
@@ -221,7 +278,6 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		if (this.underWaterTicks > 20) {
 			this.attackEntityFrom(DamageSource.DROWN, 1.0F);
 		}
-
 		BlockPos blockpos = new BlockPos(this);
 		BlockPos blockpos1 = blockpos.north();
 		BlockPos blockpos2 = blockpos.south();
@@ -245,11 +301,11 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 //				this.setIsFlyHanging(false);
 //				this.world.playEvent((PlayerEntity) null, 1025, blockpos, 0);
 //			}
-
-			else if (this.getPosX() >= blockpos.getX() + 0.25) {
-				this.setIsFlyHanging(false);
-				this.world.playEvent((PlayerEntity) null, 1025, blockpos, 0);
-			}
+//
+//			else if (this.getPosX() >= blockpos.getX() + 0.25) {
+//				this.setIsFlyHanging(false);
+//				this.world.playEvent((PlayerEntity) null, 1025, blockpos, 0);
+//			}
 
 			else {
 				this.setIsFlyHanging(false);
@@ -257,8 +313,8 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 			}
 		}
 
-		else if (this.rand.nextInt(100) == 0 && (this.world.getBlockState(blockpos1).isNormalCube(this.world, blockpos1)
-				|| this.world.getBlockState(blockpos2).isNormalCube(this.world, blockpos2)
+		else if (/* this.rand.nextInt(100) == 0 && */(this.world.getBlockState(blockpos1).isNormalCube(this.world,
+				blockpos1) || this.world.getBlockState(blockpos2).isNormalCube(this.world, blockpos2)
 				|| this.world.getBlockState(blockpos3).isNormalCube(this.world, blockpos3)
 				|| this.world.getBlockState(blockpos4).isNormalCube(this.world, blockpos4)
 						&& this.collidedHorizontally)) {
@@ -271,12 +327,12 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		if (!this.getIsFlyHanging()) {
 			this.updateBodyPitch();
 		}
+		BlockPos blockpos = new BlockPos(this);
+		BlockPos blockpos1 = blockpos.north();
+		BlockPos blockpos2 = blockpos.south();
+		BlockPos blockpos3 = blockpos.east();
+		BlockPos blockpos4 = blockpos.west();
 		if (this.getIsFlyHanging()) {
-			BlockPos blockpos = new BlockPos(this);
-			BlockPos blockpos1 = blockpos.north();
-			BlockPos blockpos2 = blockpos.south();
-			BlockPos blockpos3 = blockpos.east();
-			BlockPos blockpos4 = blockpos.west();
 			Vec3d vec3d = new Vec3d(blockpos1);
 			if (this.world.getBlockState(blockpos1).isNormalCube(this.world, blockpos)
 					|| this.world.getBlockState(blockpos2).isNormalCube(this.world, blockpos)
