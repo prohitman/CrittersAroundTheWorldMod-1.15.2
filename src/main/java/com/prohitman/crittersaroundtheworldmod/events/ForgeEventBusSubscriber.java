@@ -30,22 +30,19 @@ public class ForgeEventBusSubscriber {
 		if (event.getEntityLiving() instanceof PolarBearEntity) {
 			PolarBearEntity polarBear = (PolarBearEntity) event.getEntityLiving();
 			polarBear.targetSelector.addGoal(1,
-					new NearestAttackableTargetGoal<>(polarBear, FatSealEntity.class, 10, true, false, (entity) -> {
-						return Math.abs(entity.getPosY() - polarBear.getPosY()) <= 6.0D;
-					}));
-			polarBear.getCollisionBox(polarBear);
+					new NearestAttackableTargetGoal<>(polarBear, FatSealEntity.class, 10, true, false, (entity) -> Math.abs(entity.getPosY() - polarBear.getPosY()) <= 6.0D));
+			polarBear.getCollisionBorderSize();
 		}
 		if (event.getEntityLiving() instanceof AbstractGroupFishEntity) {
 			AbstractGroupFishEntity fish = (AbstractGroupFishEntity) event.getEntityLiving();
 			fish.targetSelector.addGoal(1,
 					new AvoidEntityGoal<>(fish, FatSealEntity.class, 6.0F, 1.0D, 3.0D));
-			fish.getCollisionBox(fish);
+			fish.getCollisionBorderSize();
 		}
 	}
 
 	@SubscribeEvent
 	public static void jarEntities(EntityInteract event) {
-
 		PlayerEntity player = event.getPlayer();
 		Hand hand = event.getHand();
 		ItemStack itemstack = player.getHeldItem(hand);

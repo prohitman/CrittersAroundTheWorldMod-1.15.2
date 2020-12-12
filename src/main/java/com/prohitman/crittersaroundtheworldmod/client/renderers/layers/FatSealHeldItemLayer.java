@@ -1,7 +1,7 @@
 package com.prohitman.crittersaroundtheworldmod.client.renderers.layers;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.prohitman.crittersaroundtheworldmod.client.models.AdvancedFatSealModel;
+import com.prohitman.crittersaroundtheworldmod.client.models.FatSealModel;
 import com.prohitman.crittersaroundtheworldmod.entities.FatSealEntity;
 
 import net.minecraft.client.Minecraft;
@@ -16,8 +16,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class FatSealHeldItemLayer extends LayerRenderer<FatSealEntity, AdvancedFatSealModel<FatSealEntity>> {
-	public FatSealHeldItemLayer(IEntityRenderer<FatSealEntity, AdvancedFatSealModel<FatSealEntity>> layerRendererContext) {
+public class FatSealHeldItemLayer extends LayerRenderer<FatSealEntity, FatSealModel<FatSealEntity>> {
+	public FatSealHeldItemLayer(IEntityRenderer<FatSealEntity, FatSealModel<FatSealEntity>> layerRendererContext) {
 		super(layerRendererContext);
 	}
 
@@ -26,10 +26,10 @@ public class FatSealHeldItemLayer extends LayerRenderer<FatSealEntity, AdvancedF
 			float ageInTicks, float netHeadYaw, float headPitch) {
 
 		matrixStackIn.push();
-		matrixStackIn.translate((double) ((this.getEntityModel()).Body.rotationPointX / 16.0F),
-				(double) ((this.getEntityModel()).Body.rotationPointY / 16.0F),
-				(double) ((this.getEntityModel()).Body.rotationPointZ / 16.0F));
-		matrixStackIn.translate((double) -0.05F, (double) 0.1F, -0.72D);
+		matrixStackIn.translate((this.getEntityModel()).Body.rotationPointX / 16.0F,
+				(this.getEntityModel()).Body.rotationPointY / 16.0F,
+				(this.getEntityModel()).Body.rotationPointZ / 16.0F);
+		matrixStackIn.translate(-0.05F, 0.1F, -0.72D);
 
 		matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90.0F));
 		matrixStackIn.rotate(Vector3f.ZP.rotationDegrees(-45.0F));

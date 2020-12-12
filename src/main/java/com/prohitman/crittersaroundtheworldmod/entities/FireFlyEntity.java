@@ -5,20 +5,17 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.lang3.Validate;
+import com.sun.javafx.geom.Vec3d;
+import net.minecraft.dispenser.IPosition;
+import net.minecraft.entity.*;
+import net.minecraft.entity.ai.attributes.AttributeModifierMap;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.passive.BeeEntity;
+import net.minecraft.world.server.ServerWorld;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.AgeableEntity;
-import net.minecraft.entity.CreatureAttribute;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityPredicate;
-import net.minecraft.entity.EntitySize;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.Pose;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.controller.FlyingMovementController;
 import net.minecraft.entity.ai.controller.LookController;
@@ -42,7 +39,7 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
@@ -77,13 +74,16 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		this.goalSelector.addGoal(9, new SwimGoal(this));
 	}
 
+	public static AttributeModifierMap.MutableAttribute setFireFlyAttributes() {
+		return MobEntity.func_233666_p_()
+				.createMutableAttribute(Attributes.MAX_HEALTH, 5.0D)
+				.createMutableAttribute(Attributes.MOVEMENT_SPEED, 0.3D)
+				.createMutableAttribute(Attributes.FLYING_SPEED, 0.6D);
+	}
+
 	@Override
-	protected void registerAttributes() {
-		super.registerAttributes();
-		this.getAttributes().registerAttribute(SharedMonsterAttributes.FLYING_SPEED);
-		this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(5.0D);
-		this.getAttribute(SharedMonsterAttributes.FLYING_SPEED).setBaseValue((double) 0.6F);
-		this.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue((double) 0.3F);
+	public AgeableEntity func_241840_a(ServerWorld p_241840_1_, AgeableEntity p_241840_2_) {
+		return null;
 	}
 
 	@Override
@@ -190,7 +190,7 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 				double d1 = entityIn.getPosZ() - this.getPosZ();
 				double d2 = MathHelper.absMax(d0, d1);
 				if (d2 >= (double) 0.01F) {
-					d2 = (double) MathHelper.sqrt(d2);
+					d2 = MathHelper.sqrt(d2);
 					d0 = d0 / d2;
 					d1 = d1 / d2;
 					double d3 = 1.0D / d2;
@@ -278,7 +278,7 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		if (this.underWaterTicks > 20) {
 			this.attackEntityFrom(DamageSource.DROWN, 1.0F);
 		}
-		BlockPos blockpos = new BlockPos(this);
+		BlockPos blockpos = new BlockPos((IPosition) this);
 		BlockPos blockpos1 = blockpos.north();
 		BlockPos blockpos2 = blockpos.south();
 		BlockPos blockpos3 = blockpos.east();
@@ -327,13 +327,13 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		if (!this.getIsFlyHanging()) {
 			this.updateBodyPitch();
 		}
-		BlockPos blockpos = new BlockPos(this);
+		BlockPos blockpos = FireFlyEntity.this.getPosition();;
 		BlockPos blockpos1 = blockpos.north();
 		BlockPos blockpos2 = blockpos.south();
 		BlockPos blockpos3 = blockpos.east();
 		BlockPos blockpos4 = blockpos.west();
 		if (this.getIsFlyHanging()) {
-			Vec3d vec3d = new Vec3d(blockpos1);
+			Vector3d vec3d = Vector3d.copyCenteredHorizontally(blockpos1);
 			if (this.world.getBlockState(blockpos1).isNormalCube(this.world, blockpos)
 					|| this.world.getBlockState(blockpos2).isNormalCube(this.world, blockpos)
 					|| this.world.getBlockState(blockpos3).isNormalCube(this.world, blockpos)
@@ -372,17 +372,12 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 				// this.setPosition((double)MathHelper.floor(this.getPosX()) + 1.175D -
 				// (double)this.getWidth(), this.getPosY(), this.getPosZ());
 			}
-			this.setMotion(Vec3d.ZERO);
+			this.setMotion(Vector3d.ZERO);
 
 		} else {
 			this.setMotion(this.getMotion().mul(1.0D, 0.8D, 1.0D));
 
 		}
-	}
-
-	@Override
-	public AgeableEntity createChild(AgeableEntity ageable) {
-		return null;
 	}
 
 	/**
@@ -407,7 +402,7 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		return flyingpathnavigator;
 	}
 
-	static class WanderGoal extends Goal {
+	 class WanderGoal extends Goal {
 		FireFlyEntity firefly;
 
 		WanderGoal(FireFlyEntity firefly) {
@@ -420,36 +415,34 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		 * necessary for execution in this method as well.
 		 */
 		public boolean shouldExecute() {
-			return this.firefly.navigator.noPath() && this.firefly.rand.nextInt(10) == 0
-					&& !this.firefly.getIsFlyHanging();
+			return FireFlyEntity.this.navigator.noPath() && FireFlyEntity.this.rand.nextInt(10) == 0
+					&& !FireFlyEntity.this.getIsFlyHanging();
 		}
 
 		/**
 		 * Returns whether an in-progress EntityAIBase should continue executing
 		 */
 		public boolean shouldContinueExecuting() {
-			return this.firefly.navigator.func_226337_n_();
+			return FireFlyEntity.this.navigator.hasPath();
 		}
 
 		/**
 		 * Execute a one shot task or start executing a continuous task
 		 */
 		public void startExecuting() {
-			Vec3d vec3d = this.getRandomLocation();
-			if (vec3d != null) {
-				this.firefly.navigator.setPath(this.firefly.navigator.getPathToPos(new BlockPos(vec3d), 1), 1.0D);
+			Vector3d vector3d = this.getRandomLocation();
+			if (vector3d != null) {
+				FireFlyEntity.this.navigator.setPath(FireFlyEntity.this.navigator.getPathToPos(new BlockPos(vector3d), 1), 1.0D);
 			}
 		}
 
 		@Nullable
-		private Vec3d getRandomLocation() {
-			Vec3d vec3d;
-			vec3d = this.firefly.getLook(0.0F);
-			Vec3d vec3d2 = RandomPositionGenerator.findAirTarget(this.firefly, 8, 7, vec3d, ((float) Math.PI / 2F), 2,
-					1);
-			return vec3d2 != null ? vec3d2
-					: RandomPositionGenerator.findGroundTarget(this.firefly, 8, 4, -2, vec3d,
-							(double) ((float) Math.PI / 2F));
+		private Vector3d getRandomLocation() {
+			Vector3d vector3d;
+			vector3d = FireFlyEntity.this.getLook(0.0F);
+			int i = 8;
+			Vector3d vector3d2 = RandomPositionGenerator.findAirTarget(FireFlyEntity.this, 8, 7, vector3d, ((float)Math.PI / 2F), 2, 1);
+			return vector3d2 != null ? vector3d2 : RandomPositionGenerator.findGroundTarget(FireFlyEntity.this, 8, 4, -2, vector3d, (double)((float)Math.PI / 2F));
 		}
 	}
 

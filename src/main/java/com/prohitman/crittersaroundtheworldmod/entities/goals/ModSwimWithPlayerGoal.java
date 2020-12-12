@@ -28,7 +28,7 @@ public class ModSwimWithPlayerGoal extends Goal {
 	 */
 	public boolean shouldExecute() {
 		this.targetPlayer = this.creature.world.getClosestPlayer(ENTITY_PREDICATE, this.creature);
-		return this.targetPlayer == null ? false : this.targetPlayer.isSwimming() && this.creature.isInWater();
+		return this.targetPlayer != null && this.targetPlayer.isSwimming() && this.creature.isInWater();
 	}
 
 	/**

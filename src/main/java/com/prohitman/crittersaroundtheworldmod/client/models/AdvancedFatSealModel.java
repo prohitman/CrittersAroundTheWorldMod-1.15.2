@@ -1,5 +1,6 @@
 package com.prohitman.crittersaroundtheworldmod.client.models;
 
+/*
 import com.github.alexthe666.citadel.client.model.AdvancedEntityModel;
 import com.github.alexthe666.citadel.client.model.AdvancedModelBox;
 import com.google.common.collect.ImmutableList;
@@ -58,9 +59,11 @@ public class AdvancedFatSealModel<T extends FatSealEntity> extends AdvancedEntit
 		this.updateDefaultPose();
 	}
 
-	/**
+	*/
+/*
 	 * This is a helper function from Tabula to set the rotation of model parts
-	 */
+	 *//*
+
 	public void setRotateAngle(AdvancedModelBox modelRenderer, float x, float y, float z) {
 		modelRenderer.rotateAngleX = x;
 		modelRenderer.rotateAngleY = y;
@@ -115,3 +118,4 @@ public class AdvancedFatSealModel<T extends FatSealEntity> extends AdvancedEntit
 	}
 
 }
+*/

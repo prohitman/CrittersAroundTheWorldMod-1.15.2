@@ -3,7 +3,7 @@ package com.prohitman.crittersaroundtheworldmod.client.renderers;
 import javax.annotation.Nonnull;
 
 import com.prohitman.crittersaroundtheworldmod.CrittersAroundTheWorld;
-import com.prohitman.crittersaroundtheworldmod.client.models.AdvancedFatSealModel;
+import com.prohitman.crittersaroundtheworldmod.client.models.FatSealModel;
 import com.prohitman.crittersaroundtheworldmod.client.renderers.layers.FatSealHeldItemLayer;
 import com.prohitman.crittersaroundtheworldmod.entities.FatSealEntity;
 
@@ -14,13 +14,13 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class FatSealRenderer extends MobRenderer<FatSealEntity, AdvancedFatSealModel<FatSealEntity>>
+public class FatSealRenderer extends MobRenderer<FatSealEntity, FatSealModel<FatSealEntity>>
 {
 	private static final ResourceLocation resourcelocation = new ResourceLocation(CrittersAroundTheWorld.MOD_ID, "textures/entity/fat_seal.png");
 
 	public FatSealRenderer(EntityRendererManager renderManagerIn) 
 	{
-		super(renderManagerIn, new AdvancedFatSealModel<>(), 0.7F);
+		super(renderManagerIn, new FatSealModel<>(), 0.7F);
 		this.addLayer(new FatSealHeldItemLayer(this));
 	}
 	

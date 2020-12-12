@@ -16,6 +16,6 @@ public class FatSealWanderGoal extends RandomWalkingGoal {
 	 * Returns whether the EntityAIBase should begin execution.
 	 */
 	public boolean shouldExecute() {
-		return !this.seal.isGoingHome() && !this.seal.isInWater() ? super.shouldExecute() : false;
+		return !this.seal.isGoingHome() && !this.seal.isInWater() && super.shouldExecute();
 	}
 }

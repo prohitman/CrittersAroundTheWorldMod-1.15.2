@@ -39,7 +39,6 @@ public class CrittersAroundTheWorld
     
     private void setup(final FMLCommonSetupEvent event)
     {
-    	ModEntities.registerEntityWorldSpawns();
     	ModEntities.registerSpawnPlacement();
     }
 

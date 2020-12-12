@@ -27,7 +27,7 @@ public class ModBlocks {
 
 	public static final RegistryObject<Block> JAR_CATM = BLOCKS.register("jar_catm", () -> new JarBlock(Block.Properties.create(Material.GLASS).hardnessAndResistance(0.0F).notSolid().sound(SoundType.GLASS)));
 	
-	public static final RegistryObject<Block> JAR_O_FIREFLY = BLOCKS.register("jar_o_firefly",() -> new FireFlyInAJarBlock(Block.Properties.create(Material.GLASS).lightValue(10).hardnessAndResistance(0.0F).sound(SoundType.GLASS)));
+	public static final RegistryObject<Block> JAR_O_FIREFLY = BLOCKS.register("jar_o_firefly",() -> new FireFlyInAJarBlock(Block.Properties.create(Material.GLASS).setLightLevel((state) -> 10).hardnessAndResistance(0.0F).sound(SoundType.GLASS)));
 	
 	@SubscribeEvent
 	public static void onRegisterItems(final RegistryEvent.Register<Item> event) {

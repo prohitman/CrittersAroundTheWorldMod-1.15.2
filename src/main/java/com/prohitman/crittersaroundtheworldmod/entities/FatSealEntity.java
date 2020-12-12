@@ -18,7 +18,6 @@ import com.prohitman.crittersaroundtheworldmod.init.ModEntities;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.dispenser.IPosition;
 import net.minecraft.entity.AgeableEntity;
 import net.minecraft.entity.CreatureAttribute;
 import net.minecraft.entity.Entity;
@@ -30,6 +29,8 @@ import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.RandomPositionGenerator;
+import net.minecraft.entity.ai.attributes.AttributeModifierMap;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.controller.JumpController;
 import net.minecraft.entity.ai.controller.MovementController;
 import net.minecraft.entity.ai.goal.AvoidEntityGoal;
@@ -151,14 +152,14 @@ public class FatSealEntity extends AnimalEntity {
 				}));
 	}
 
-	@Override
-	protected void registerAttributes() {
-		super.registerAttributes();
-		this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(16.0D);
-		this.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.25D);
-		this.getAttributes().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
-		this.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(6.0D);
+	public static AttributeModifierMap.MutableAttribute setFatSealAttributes() {
+		return MobEntity.func_233666_p_()
+				.createMutableAttribute(Attributes.MAX_HEALTH, 16.0D)
+				.createMutableAttribute(Attributes.MOVEMENT_SPEED, 0.25D)
+				.createMutableAttribute(Attributes.ATTACK_DAMAGE, 6.0D);
 	}
+
+
 
 	public void setHome(BlockPos position) {
 		this.dataManager.set(HOME_POS, position);
@@ -260,7 +261,7 @@ public class FatSealEntity extends AnimalEntity {
 		if (source == DamageSource.FALL && this.isPaniced) {
 			this.getNavigator().clearPath();
 		}
-		return this.isInvulnerableTo(source) ? false : super.attackEntityFrom(source, amount);
+		return !this.isInvulnerableTo(source) && super.attackEntityFrom(source, amount);
 	}
 
 	public void travel(Vector3d positionIn) {
@@ -412,7 +413,7 @@ public class FatSealEntity extends AnimalEntity {
 	@OnlyIn(Dist.CLIENT)
 	public void handleStatusUpdate(byte id) {
 		if (id == 1) {
-			this.func_233569_aL_();
+			//this.func_233569_aL_();
 			this.jumpDuration = 10;
 			this.jumpTicks = 0;
 		} else {
@@ -691,7 +692,7 @@ public class FatSealEntity extends AnimalEntity {
 				this.seal.rotationYaw = this.limitAngle(this.seal.rotationYaw, f, 90.0F);
 				this.seal.renderYawOffset = this.seal.rotationYaw;
 				float f1 = (float) (this.speed
-						* this.seal.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getValue());
+						* this.seal.getAttribute(Attributes.MOVEMENT_SPEED).getValue());
 				this.seal.setAIMoveSpeed(MathHelper.lerp(0.125F, this.seal.getAIMoveSpeed(), f1));
 				this.seal.setMotion(
 						this.seal.getMotion().add(0.0D, (double) this.seal.getAIMoveSpeed() * d1 * 0.1D, 0.0D));
@@ -716,7 +717,7 @@ public class FatSealEntity extends AnimalEntity {
 		}
 	}
 
-	public class FatSealJumpHelperController extends JumpController {
+	public static class FatSealJumpHelperController extends JumpController {
 		private final FatSealEntity seal;
 		private boolean canJump;
 
@@ -794,7 +795,7 @@ public class FatSealEntity extends AnimalEntity {
 			if (this.seal.getNavigator().noPath()) {
 				Vector3d vec3d = Vector3d.copyCenteredHorizontally(this.seal.getTravelPos());
 				Vector3d vec3d1 = RandomPositionGenerator.findRandomTargetTowardsScaled(this.seal, 16, 3, vec3d,
-						(double) ((float) Math.PI / 10F));
+						((float) Math.PI / 10F));
 				if (vec3d1 == null) {
 					vec3d1 = RandomPositionGenerator.findRandomTargetBlockTowards(this.seal, 8, 7, vec3d);
 				}
@@ -895,9 +896,7 @@ public class FatSealEntity extends AnimalEntity {
 		 */
 		protected boolean shouldMoveTo(IWorldReader worldIn, BlockPos pos) {
 			BlockPos blockpos = pos.up();
-			return worldIn.isAirBlock(blockpos) && worldIn.isAirBlock(blockpos.up())
-					? worldIn.getBlockState(pos).isTopSolid(worldIn, pos, this.seal, null)
-					: false;
+			return worldIn.isAirBlock(blockpos) && worldIn.isAirBlock(blockpos.up()) && worldIn.getBlockState(pos).isTopSolid(worldIn, pos, this.seal, null);
 		}
 
 		/**
@@ -995,7 +994,7 @@ public class FatSealEntity extends AnimalEntity {
 		 */
 		public boolean shouldExecute() {
 			this.targetPlayer = this.creature.world.getClosestPlayer(ENTITY_PREDICATE, this.creature);
-			return this.targetPlayer == null ? false : this.targetPlayer.isSwimming() && this.creature.isInWater();
+			return this.targetPlayer != null && this.targetPlayer.isSwimming() && this.creature.isInWater();
 		}
 
 		/**
