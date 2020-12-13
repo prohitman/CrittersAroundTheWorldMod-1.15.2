@@ -10,6 +10,7 @@ loaderVersion="[31,)" #mandatory This is typically bumped every Minecraft versio
 # A URL to refer people to when problems occur with this mod
 issueTrackerURL="http://my.issue.tracker/" #optional
 
+license="All rights reserved"
 # A list of mods - how many allowed here is determined by the individual mod loader
 [[mods]] #mandatory
 
@@ -59,5 +60,12 @@ lllll
     modId="minecraft"
     mandatory=true
     versionRange="[1.16.4]"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.crittersaroundtheworldmod]]
+    modId="citadel"
+    mandatory=true
+    versionRange="[1.5.3]"
     ordering="NONE"
     side="BOTH"

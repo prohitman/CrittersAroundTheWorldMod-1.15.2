@@ -40,6 +40,7 @@ public class CrittersAroundTheWorld
     private void setup(final FMLCommonSetupEvent event)
     {
     	ModEntities.registerSpawnPlacement();
+    	ModEntities.initEntityAttributes();
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) 

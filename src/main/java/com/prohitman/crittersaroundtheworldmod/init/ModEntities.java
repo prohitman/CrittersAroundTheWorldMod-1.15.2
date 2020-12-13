@@ -7,10 +7,15 @@ import com.prohitman.crittersaroundtheworldmod.entities.FireFlyEntity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biomes;
+import net.minecraft.world.biome.MobSpawnInfo;
 import net.minecraft.world.gen.Heightmap;
+import net.minecraftforge.event.world.BiomeLoadingEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -47,13 +52,26 @@ public class ModEntities {
 
 
 	public static void registerSpawnPlacement() {
-		EntitySpawnPlacementRegistry.register(FAT_SEAL_ENTITY.get(),
-				EntitySpawnPlacementRegistry.PlacementType.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
-				FatSealEntity::canSpawn);
+		EntitySpawnPlacementRegistry.register(FAT_SEAL_ENTITY.get(), EntitySpawnPlacementRegistry.PlacementType.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, FatSealEntity::canSpawn);
+		EntitySpawnPlacementRegistry.register(FIRE_FLY_ENTITY.get(), EntitySpawnPlacementRegistry.PlacementType.NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, FireFlyEntity::canSpawn);
+	}
 
-		EntitySpawnPlacementRegistry.register(FIRE_FLY_ENTITY.get(),
-				EntitySpawnPlacementRegistry.PlacementType.NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
-				FireFlyEntity::canSpawn);
+	public static void initEntityAttributes(){
+		GlobalEntityTypeAttributes.put(ModEntities.FAT_SEAL_ENTITY.get(), FatSealEntity.setFatSealAttributes().create());
+		GlobalEntityTypeAttributes.put(ModEntities.FIRE_FLY_ENTITY.get(), FireFlyEntity.setFireFlyAttributes().create());
+	}
+
+	@SubscribeEvent(priority = EventPriority.HIGH)
+	public static void addSpawn(BiomeLoadingEvent event) {
+		if (event.getName() != null) {
+			Biome biome = ForgeRegistries.BIOMES.getValue(event.getName());
+			if(biome != null){
+				if(biome.getRegistryName() == Biomes.ICE_SPIKES.getRegistryName()){
+					event.getSpawns().getSpawner(EntityClassification.CREATURE).add(new MobSpawnInfo.Spawners(ModEntities.FAT_SEAL_ENTITY.get(), 50, 5, 10));
+
+				}
+			}
+		}
 	}
 
 }
