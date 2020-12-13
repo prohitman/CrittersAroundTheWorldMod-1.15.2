@@ -147,9 +147,7 @@ public class FatSealEntity extends AnimalEntity {
 		this.goalSelector.addGoal(9, new FatSealWanderGoal(this, 1.0D, 100));
 		this.goalSelector.addGoal(9, new AvoidEntityGoal<>(this, PolarBearEntity.class, 8.0F, 1.0D, 2.0D));
 		this.targetSelector.addGoal(2,
-				new NearestAttackableTargetGoal<>(this, AbstractGroupFishEntity.class, 2, true, true, (entity) -> {
-					return this.getItemStackFromSlot(EquipmentSlotType.MAINHAND).isEmpty();
-				}));
+				new NearestAttackableTargetGoal<>(this, AbstractGroupFishEntity.class, 2, true, true, (entity) -> this.getItemStackFromSlot(EquipmentSlotType.MAINHAND).isEmpty()));
 	}
 
 	public static AttributeModifierMap.MutableAttribute setFatSealAttributes() {
@@ -576,8 +574,7 @@ public class FatSealEntity extends AnimalEntity {
 		}
 
 		else {
-			return worldIn.getBlockState(pos.down()).getBlock() == Blocks.SNOW ? 10.0F
-					: worldIn.getBrightness(pos) - 0.5F;
+			return worldIn.getBlockState(pos.down()).getBlock() == Blocks.SNOW ? 10.0F : worldIn.getBrightness(pos) - 0.5F;
 		}
 	}
 
@@ -662,9 +659,9 @@ public class FatSealEntity extends AnimalEntity {
 		private void updateSpeed() {
 			if (this.seal.isInWater()) {
 				this.seal.setMotion(this.seal.getMotion().add(0.0D, 0.005D, 0.0D));
-				//if (!this.seal.getHome().withinDistance(this.seal.getPositionVec(), 16.0D)) {
-					//this.seal.setAIMoveSpeed(Math.max(this.seal.getAIMoveSpeed() / 2.0F, 0.08F));
-				//}
+				if (!this.seal.getHome().withinDistance(this.seal.getPositionVec(), 16.0D)) {
+					this.seal.setAIMoveSpeed(Math.max(this.seal.getAIMoveSpeed() / 2.0F, 0.08F));
+				}
 				this.seal.setJumping(false);
 
 			}
@@ -686,16 +683,15 @@ public class FatSealEntity extends AnimalEntity {
 				double d0 = this.posX - this.seal.getPosX();
 				double d1 = this.posY - this.seal.getPosY();
 				double d2 = this.posZ - this.seal.getPosZ();
-				double d3 = (double) MathHelper.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
+				double d3 = MathHelper.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
 				d1 = d1 / d3;
 				float f = (float) (MathHelper.atan2(d2, d0) * (double) (180F / (float) Math.PI)) - 90.0F;
 				this.seal.rotationYaw = this.limitAngle(this.seal.rotationYaw, f, 90.0F);
 				this.seal.renderYawOffset = this.seal.rotationYaw;
-				float f1 = (float) (this.speed
-						* this.seal.getAttribute(Attributes.MOVEMENT_SPEED).getValue());
+				float f1 = (float) (this.speed * this.seal.getAttribute(Attributes.MOVEMENT_SPEED).getValue());
 				this.seal.setAIMoveSpeed(MathHelper.lerp(0.125F, this.seal.getAIMoveSpeed(), f1));
-				this.seal.setMotion(
-						this.seal.getMotion().add(0.0D, (double) this.seal.getAIMoveSpeed() * d1 * 0.1D, 0.0D));
+				this.seal.setMotion(this.seal.getMotion().add(0.0D, (double) this.seal.getAIMoveSpeed() * d1 * 0.1D, 0.0D));
+
 			} else if (!this.seal.isInWater()) {
 				super.tick();
 			}
@@ -780,8 +776,7 @@ public class FatSealEntity extends AnimalEntity {
 				l = 0;
 			}
 
-			BlockPos blockpos = new BlockPos((double) k + this.seal.getPosX(), (double) l + this.seal.getPosY(),
-					(double) i1 + this.seal.getPosZ());
+			BlockPos blockpos = new BlockPos((double) k + this.seal.getPosX(), (double) l + this.seal.getPosY(), (double) i1 + this.seal.getPosZ());
 			this.seal.setTravelPos(blockpos);
 			this.seal.setTravelling(true);
 			this.noPath = false;
@@ -790,7 +785,6 @@ public class FatSealEntity extends AnimalEntity {
 		/**
 		 * Keep ticking a continuous task that has already been started
 		 */
-		@SuppressWarnings("deprecation")
 		public void tick() {
 			if (this.seal.getNavigator().noPath()) {
 				Vector3d vec3d = Vector3d.copyCenteredHorizontally(this.seal.getTravelPos());
