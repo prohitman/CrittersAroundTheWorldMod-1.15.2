@@ -1,16 +1,15 @@
 package com.prohitman.crittersaroundtheworldmod.entities;
 
 import java.util.EnumSet;
+import java.util.Optional;
 import java.util.Random;
 
 import javax.annotation.Nullable;
 
-import com.sun.javafx.geom.Vec3d;
-import net.minecraft.dispenser.IPosition;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.passive.BeeEntity;
+import net.minecraft.util.math.*;
 import net.minecraft.world.server.ServerWorld;
 
 import net.minecraft.block.Block;
@@ -23,8 +22,6 @@ import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.IFlyingAnimal;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.Fluid;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -32,30 +29,22 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.FlyingPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.tags.Tag;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Direction;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+
 
 public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 
-	private static final DataParameter<Byte> HANGING = EntityDataManager.createKey(FireFlyEntity.class,
-			DataSerializers.BYTE);
-	private static final EntityPredicate ENTITY_HANG_PREDICATE = (new EntityPredicate()).setDistance(4.0D)
-			.allowFriendlyFire();
-	private float rollAmount;
-	private float rollAmountO;
-	private int underWaterTicks;
-	protected Direction facingDirection = Direction.SOUTH;
+	protected static final DataParameter<Optional<BlockPos>> ATTACHED_BLOCK_POS = EntityDataManager.createKey(FireFlyEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
+	protected static final DataParameter<Direction> ATTACHED_FACE = EntityDataManager.createKey(FireFlyEntity.class, DataSerializers.DIRECTION);
+	private int attachCooldown = 0;
+	private int attachTicks = 0;
 
 	public FireFlyEntity(EntityType<? extends FireFlyEntity> type, World worldIn) {
 		super(type, worldIn);
@@ -64,13 +53,12 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		this.setPathPriority(PathNodeType.WATER, -1.0F);
 		this.setPathPriority(PathNodeType.COCOA, -1.0F);
 		this.setPathPriority(PathNodeType.FENCE, -1.0F);
-		// this.setIsFlyHanging(true);
 	}
 
 	@Override
 	protected void registerGoals() {
 		super.registerGoals();
-		this.goalSelector.addGoal(8, new FireFlyEntity.WanderGoal(this));
+		this.goalSelector.addGoal(8, new FireFlyEntity.WanderGoal());
 		this.goalSelector.addGoal(9, new SwimGoal(this));
 	}
 
@@ -82,14 +70,15 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 	}
 
 	@Override
-	public AgeableEntity func_241840_a(ServerWorld p_241840_1_, AgeableEntity p_241840_2_) {
+	public AgeableEntity func_241840_a(ServerWorld world, AgeableEntity entity) {
 		return null;
 	}
 
 	@Override
 	protected void registerData() {
 		super.registerData();
-		this.dataManager.register(HANGING, (byte) 0);
+		this.dataManager.register(ATTACHED_FACE, Direction.DOWN);
+		this.dataManager.register(ATTACHED_BLOCK_POS, Optional.empty());
 	}
 
 	/**
@@ -97,56 +86,64 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 	 */
 	public void readAdditional(CompoundNBT compound) {
 		super.readAdditional(compound);
-		this.dataManager.set(HANGING, compound.getByte("FireFlyFlags"));
+		this.dataManager.set(ATTACHED_FACE, Direction.byIndex(compound.getByte("AttachFace")));
+		this.attachCooldown = compound.getInt("AttachCooldown");
+		this.attachTicks = compound.getInt("AttachTicks");
+		if (compound.contains("APX")) {
+			int i = compound.getInt("APX");
+			int j = compound.getInt("APY");
+			int k = compound.getInt("APZ");
+			this.dataManager.set(ATTACHED_BLOCK_POS, Optional.of(new BlockPos(i, j, k)));
+		} else {
+			this.dataManager.set(ATTACHED_BLOCK_POS, Optional.empty());
+		}
 	}
 
 	public void writeAdditional(CompoundNBT compound) {
 		super.writeAdditional(compound);
-		compound.putByte("FireFlyFlags", this.dataManager.get(HANGING));
-	}
-
-	public boolean getIsFlyHanging() {
-		return (this.dataManager.get(HANGING) & 1) != 0;
-	}
-
-	public void setIsFlyHanging(boolean isHanging) {
-		byte b0 = this.dataManager.get(HANGING);
-		if (isHanging) {
-			this.dataManager.set(HANGING, (byte) (b0 | 1));
-		} else {
-			this.dataManager.set(HANGING, (byte) (b0 & -2));
-		}
-
-	}
-
-	/**
-	 * Called when the entity is attacked.
-	 */
-	public boolean attackEntityFrom(DamageSource source, float amount) {
-		if (this.isInvulnerableTo(source)) {
-			return false;
-		} else {
-			if (!this.world.isRemote && this.getIsFlyHanging()) {
-				this.setIsFlyHanging(false);
-			}
-
-			return super.attackEntityFrom(source, amount);
+		compound.putByte("AttachFace", (byte) this.dataManager.get(ATTACHED_FACE).getIndex());
+		BlockPos blockpos = this.getAttachmentPos();
+		compound.putInt("AttachCooldown", attachCooldown);
+		compound.putInt("AttachTicks", attachTicks);
+		if (blockpos != null) {
+			compound.putInt("APX", blockpos.getX());
+			compound.putInt("APY", blockpos.getY());
+			compound.putInt("APZ", blockpos.getZ());
 		}
 	}
 
+	public Direction getAttachmentFacing() {
+		return this.dataManager.get(ATTACHED_FACE);
+	}
+
+	@Nullable
+	public BlockPos getAttachmentPos() {
+		BlockPos blockPos = (BlockPos) ((Optional) this.dataManager.get(ATTACHED_BLOCK_POS)).orElse(null);
+		return blockPos;
+	}
+
+	public void setAttachmentPos(@Nullable BlockPos pos) {
+		this.dataManager.set(ATTACHED_BLOCK_POS, Optional.ofNullable(pos));
+	}
+
+	@Override
 	public CreatureAttribute getCreatureAttribute() {
 		return CreatureAttribute.ARTHROPOD;
 	}
 
-	@OnlyIn(Dist.CLIENT)
-	public float getBodyPitch(float p_226455_1_) {
-		return MathHelper.lerp(p_226455_1_, this.rollAmountO, this.rollAmount);
+	public void applyEntityCollision(Entity entityIn) {
 	}
 
-	private void updateBodyPitch() {
-		this.rollAmountO = this.rollAmount;
-		this.rollAmount = Math.max(0.0F, this.rollAmount - 0.24F);
-
+	@Override
+	public boolean attackEntityFrom(DamageSource dmg, float i) {
+		if (dmg == DamageSource.IN_WALL) {
+			return false;
+		}
+		this.attachTicks = 0;
+		attachCooldown = 1000 + rand.nextInt(1500);
+		this.dataManager.set(ATTACHED_FACE, Direction.DOWN);
+		this.setAttachmentPos(null);
+		return super.attackEntityFrom(dmg, i);
 	}
 
 	public static boolean canSpawn(EntityType<FireFlyEntity> entityTypeIn, IWorld world, SpawnReason reason,
@@ -165,55 +162,54 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		return true;
 	}
 
-//	protected void updateFacingWithBoundingBox(Direction facingDirectionIn) {
-//		if (this.getIsFlyHanging()) {
-//			Validate.notNull(facingDirectionIn);
-//			this.facingDirection = facingDirectionIn;
-//			if (facingDirectionIn.getAxis().isHorizontal()) {
-//				this.rotationPitch = 0.0F;
-//				this.rotationYaw = (float) (this.facingDirection.getHorizontalIndex() * 90);
-//			} else {
-//				this.rotationPitch = (float) (-90 * facingDirectionIn.getAxisDirection().getOffset());
-//				this.rotationYaw = 0.0F;
-//			}
-//
-//			this.prevRotationPitch = this.rotationPitch;
-//			this.prevRotationYaw = this.rotationYaw;
-//		}
-//	}
-
 	@Override
-	public void applyEntityCollision(Entity entityIn) {
-		if (!this.isRidingSameEntity(entityIn)) {
-			if (!entityIn.noClip && !this.noClip) {
-				double d0 = entityIn.getPosX() - this.getPosX();
-				double d1 = entityIn.getPosZ() - this.getPosZ();
-				double d2 = MathHelper.absMax(d0, d1);
-				if (d2 >= (double) 0.01F) {
-					d2 = MathHelper.sqrt(d2);
-					d0 = d0 / d2;
-					d1 = d1 / d2;
-					double d3 = 1.0D / d2;
-					if (d3 > 1.0D) {
-						d3 = 1.0D;
-					}
-
-					d0 = d0 * d3;
-					d1 = d1 * d3;
-					d0 = d0 * (double) 0.05F;
-					d1 = d1 * (double) 0.05F;
-					d0 = d0 * (double) (1.0F - this.entityCollisionReduction);
-					d1 = d1 * (double) (1.0F - this.entityCollisionReduction);
-					if (!this.isBeingRidden()) {
-						this.addVelocity(-d0, 0.0D, -d1);
-					}
-
-					if (!entityIn.isBeingRidden()) {
-						entityIn.addVelocity(d0, 0.0D, d1);
+	public void tick() {
+		super.tick();
+		if (attachCooldown > 0) {
+			attachCooldown--;
+		}
+		boolean flag = true;
+		if (this.getAttachmentPos() == null) {
+			attachTicks = 0;
+			if (this.collidedHorizontally && attachCooldown == 0 && !onGround) {
+				attachCooldown = 5;
+				Vector3d vec3d = this.getEyePosition(0);
+				Vector3d vec3d1 = this.getLook(0);
+				Vector3d vec3d2 = vec3d.add(vec3d1.x * 1, vec3d1.y * 1, vec3d1.z * 1);
+				BlockRayTraceResult rayTraceblock = this.getEntityWorld().rayTraceBlocks(new RayTraceContext(vec3d, vec3d2, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, this));
+				if (rayTraceblock != null && rayTraceblock.getHitVec() != null) {
+					BlockPos sidePos = rayTraceblock.getPos();
+					if (world.isDirectionSolid(sidePos, this, rayTraceblock.getFace())) {
+						this.setAttachmentPos(sidePos);
+						this.dataManager.set(ATTACHED_FACE, rayTraceblock.getFace().getOpposite());
+						this.setMotion(0, 0, 0);
 					}
 				}
-
 			}
+		} else if (flag) {
+			BlockPos pos = this.getAttachmentPos();
+			if (world.isDirectionSolid(pos, this, this.getAttachmentFacing())) {
+				attachTicks++;
+				attachCooldown = 150;
+				this.renderYawOffset = 180.0F;
+				this.prevRenderYawOffset = 180.0F;
+				this.rotationYaw = 180.0F;
+				this.prevRotationYaw = 180.0F;//FOR TESTING
+				this.rotationYawHead = 180.0F;
+				this.prevRotationYawHead = 180.0F;
+				this.setMoveForward(0.0F);
+				this.setMotion(0, 0, 0);
+			} else {
+				this.attachTicks = 0;
+				this.dataManager.set(ATTACHED_FACE, Direction.DOWN);
+				this.setAttachmentPos(null);
+			}
+		}
+		if (attachTicks > 1150 && rand.nextInt(123) == 0 || this.getAttachmentPos() != null && this.getAttackTarget() != null) {
+			this.attachTicks = 0;
+			attachCooldown = 1000 + rand.nextInt(1500);
+			this.dataManager.set(ATTACHED_FACE, Direction.DOWN);
+			this.setAttachmentPos(null);
 		}
 	}
 
@@ -262,136 +258,18 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		return false;
 	}
 
-	protected void handleFluidJump(Tag<Fluid> fluidTag) {
-		this.setMotion(this.getMotion().add(0.0D, 0.01D, 0.0D));
-	}
-
-	@Override
-	protected void updateAITasks() {
-		// super.updateAITasks();
-		if (this.isInWaterOrBubbleColumn()) {
-			++this.underWaterTicks;
-		} else {
-			this.underWaterTicks = 0;
-		}
-
-		if (this.underWaterTicks > 20) {
-			this.attackEntityFrom(DamageSource.DROWN, 1.0F);
-		}
-		BlockPos blockpos = new BlockPos((IPosition) this);
-		BlockPos blockpos1 = blockpos.north();
-		BlockPos blockpos2 = blockpos.south();
-		BlockPos blockpos3 = blockpos.east();
-		BlockPos blockpos4 = blockpos.west();
-
-		if (this.getIsFlyHanging()) {
-			if (this.world.getBlockState(blockpos1).isNormalCube(this.world, blockpos)
-					|| this.world.getBlockState(blockpos2).isNormalCube(this.world, blockpos)
-					|| this.world.getBlockState(blockpos3).isNormalCube(this.world, blockpos)
-					|| this.world.getBlockState(blockpos4).isNormalCube(this.world, blockpos)) {
-				if (this.world.getClosestPlayer(ENTITY_HANG_PREDICATE, this) != null) {
-					this.setIsFlyHanging(false);
-					this.world.playEvent((PlayerEntity) null, 1025, blockpos, 0);
-				}
-				// this.setPosition((double)MathHelper.floor(this.getPosX()) + 1.175D -
-				// (double)this.getWidth(), this.getPosY(), this.getPosZ());
-			}
-
-//			else if (!this.collidedHorizontally) {
-//				this.setIsFlyHanging(false);
-//				this.world.playEvent((PlayerEntity) null, 1025, blockpos, 0);
-//			}
-//
-//			else if (this.getPosX() >= blockpos.getX() + 0.25) {
-//				this.setIsFlyHanging(false);
-//				this.world.playEvent((PlayerEntity) null, 1025, blockpos, 0);
-//			}
-
-			else {
-				this.setIsFlyHanging(false);
-				this.world.playEvent((PlayerEntity) null, 1025, blockpos, 0);
-			}
-		}
-
-		else if (/* this.rand.nextInt(100) == 0 && */(this.world.getBlockState(blockpos1).isNormalCube(this.world,
-				blockpos1) || this.world.getBlockState(blockpos2).isNormalCube(this.world, blockpos2)
-				|| this.world.getBlockState(blockpos3).isNormalCube(this.world, blockpos3)
-				|| this.world.getBlockState(blockpos4).isNormalCube(this.world, blockpos4)
-						&& this.collidedHorizontally)) {
-			this.setIsFlyHanging(true);
-		}
-	}
-
-	public void tick() {
-		super.tick();
-		if (!this.getIsFlyHanging()) {
-			this.updateBodyPitch();
-		}
-		BlockPos blockpos = FireFlyEntity.this.getPosition();;
-		BlockPos blockpos1 = blockpos.north();
-		BlockPos blockpos2 = blockpos.south();
-		BlockPos blockpos3 = blockpos.east();
-		BlockPos blockpos4 = blockpos.west();
-		if (this.getIsFlyHanging()) {
-			Vector3d vec3d = Vector3d.copyCenteredHorizontally(blockpos1);
-			if (this.world.getBlockState(blockpos1).isNormalCube(this.world, blockpos)
-					|| this.world.getBlockState(blockpos2).isNormalCube(this.world, blockpos)
-					|| this.world.getBlockState(blockpos3).isNormalCube(this.world, blockpos)
-					|| this.world.getBlockState(blockpos4).isNormalCube(this.world, blockpos)) {
-//				if (this.rand.nextInt(200) == 0) {
-//					this.rotationYawHead = (float) this.rand.nextInt(360);
-//				}
-				if (this.world.getBlockState(blockpos1).isNormalCube(this.world, blockpos)) {
-					this.getLookController().setLookPosition(vec3d.x + 0.5, vec3d.y, vec3d.z, blockpos1.getX() + 180f,
-							blockpos1.getZ());
-					this.setPosition(this.getPosX(), this.getPosY(),
-							(double) MathHelper.floor(this.getPosZ()) + 0.64D - (double) this.getWidth());
-
-				}
-				if (this.world.getBlockState(blockpos2).isNormalCube(this.world, blockpos)) {
-					this.getLookController().setLookPosition(vec3d.x, vec3d.y, vec3d.z + 90, blockpos2.getX(),
-							blockpos2.getZ());
-					this.setPosition(this.getPosX(), this.getPosY(),
-							(double) MathHelper.floor(this.getPosZ()) + 1.175D - (double) this.getWidth());
-
-				}
-				if (this.world.getBlockState(blockpos3).isNormalCube(this.world, blockpos)) {
-					this.getLookController().setLookPosition(vec3d.x + 390, vec3d.y, vec3d.z, blockpos3.getX() + 180f,
-							blockpos3.getZ());
-					this.setPosition((double) MathHelper.floor(this.getPosX()) + 1.175D - (double) this.getWidth(),
-							this.getPosY(), this.getPosZ());
-
-				}
-				if (this.world.getBlockState(blockpos4).isNormalCube(this.world, blockpos)) {
-					this.getLookController().setLookPosition(vec3d.x - 390, vec3d.y, vec3d.z, blockpos4.getX() + 180f,
-							blockpos4.getZ());
-					this.setPosition((double) MathHelper.floor(this.getPosX()) + 0.64D - (double) this.getWidth(),
-							this.getPosY(), this.getPosZ());
-
-				}
-				// this.setPosition((double)MathHelper.floor(this.getPosX()) + 1.175D -
-				// (double)this.getWidth(), this.getPosY(), this.getPosZ());
-			}
-			this.setMotion(Vector3d.ZERO);
-
-		} else {
-			this.setMotion(this.getMotion().mul(1.0D, 0.8D, 1.0D));
-
-		}
-	}
-
 	/**
 	 * Returns new PathNavigateGround instance
 	 */
 	protected PathNavigator createNavigator(World worldIn) {
 		FlyingPathNavigator flyingpathnavigator = new FlyingPathNavigator(this, worldIn) {
-			@SuppressWarnings("deprecation")
+
 			public boolean canEntityStandOnPos(BlockPos pos) {
 				return !this.world.getBlockState(pos.down()).isAir();
 			}
 
 			public void tick() {
-				if (!FireFlyEntity.this.getIsFlyHanging()) {
+				if (FireFlyEntity.this.getAttachmentPos() == null) {
 					super.tick();
 				}
 			}
@@ -403,11 +281,8 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 	}
 
 	 class WanderGoal extends Goal {
-		FireFlyEntity firefly;
-
-		WanderGoal(FireFlyEntity firefly) {
+		WanderGoal() {
 			this.setMutexFlags(EnumSet.of(Goal.Flag.MOVE));
-			this.firefly = firefly;
 		}
 
 		/**
@@ -415,8 +290,7 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		 * necessary for execution in this method as well.
 		 */
 		public boolean shouldExecute() {
-			return FireFlyEntity.this.navigator.noPath() && FireFlyEntity.this.rand.nextInt(10) == 0
-					&& !FireFlyEntity.this.getIsFlyHanging();
+			return FireFlyEntity.this.navigator.noPath() && FireFlyEntity.this.rand.nextInt(10) == 0 && FireFlyEntity.this.getAttachmentPos() == null;
 		}
 
 		/**
@@ -440,9 +314,9 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		private Vector3d getRandomLocation() {
 			Vector3d vector3d;
 			vector3d = FireFlyEntity.this.getLook(0.0F);
-			int i = 8;
-			Vector3d vector3d2 = RandomPositionGenerator.findAirTarget(FireFlyEntity.this, 8, 7, vector3d, ((float)Math.PI / 2F), 2, 1);
-			return vector3d2 != null ? vector3d2 : RandomPositionGenerator.findGroundTarget(FireFlyEntity.this, 8, 4, -2, vector3d, (double)((float)Math.PI / 2F));
+
+			Vector3d vector3d2 = RandomPositionGenerator.findAirTarget(FireFlyEntity.this, 3, 3, vector3d, ((float)Math.PI / 2F), 1, 1);
+			return vector3d2 != null ? vector3d2 : RandomPositionGenerator.findGroundTarget(FireFlyEntity.this, 3, 3, -3, vector3d, ((float)Math.PI / 2F));
 		}
 	}
 
