@@ -9,6 +9,10 @@ import javax.annotation.Nullable;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.goal.WaterAvoidingRandomFlyingGoal;
+import net.minecraft.entity.passive.BeeEntity;
+import net.minecraft.fluid.Fluid;
+import net.minecraft.tags.ITag;
 import net.minecraft.util.math.*;
 import net.minecraft.world.server.ServerWorld;
 
@@ -37,6 +41,8 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 
 public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
@@ -50,7 +56,9 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		super(type, worldIn);
 		this.moveController = new FlyingMovementController(this, 20, true);
 		this.lookController = new LookController(this);
+		this.setPathPriority(PathNodeType.DANGER_FIRE, -1.0F);
 		this.setPathPriority(PathNodeType.WATER, -1.0F);
+		this.setPathPriority(PathNodeType.WATER_BORDER, 16.0F);
 		this.setPathPriority(PathNodeType.COCOA, -1.0F);
 		this.setPathPriority(PathNodeType.FENCE, -1.0F);
 	}
@@ -58,7 +66,7 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 	@Override
 	protected void registerGoals() {
 		super.registerGoals();
-		this.goalSelector.addGoal(8, new FireFlyEntity.WanderGoal());
+		this.goalSelector.addGoal(8, new WanderGoal());
 		this.goalSelector.addGoal(9, new SwimGoal(this));
 	}
 
@@ -131,7 +139,16 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		return CreatureAttribute.ARTHROPOD;
 	}
 
+	protected void handleFluidJump(ITag<Fluid> fluidTag) {
+		this.setMotion(this.getMotion().add(0.0D, 0.01D, 0.0D));
+	}
+
 	public void applyEntityCollision(Entity entityIn) {
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public Vector3d func_241205_ce_() {
+		return new Vector3d(0.0D, 0.5F * this.getEyeHeight(), this.getWidth() * 0.2F);
 	}
 
 	@Override
@@ -315,8 +332,8 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 			Vector3d vector3d;
 			vector3d = FireFlyEntity.this.getLook(0.0F);
 								//4 , 3
-			Vector3d vector3d2 = RandomPositionGenerator.findAirTarget(FireFlyEntity.this, 1 , 1, vector3d, ((float)Math.PI / 2F), 1, 1);
-			return vector3d2 != null ? vector3d2 : RandomPositionGenerator.findGroundTarget(FireFlyEntity.this, 1, 1, -1, vector3d, ((float)Math.PI / 2F));
+			Vector3d vector3d2 = RandomPositionGenerator.findAirTarget(FireFlyEntity.this, 8 , 7, vector3d, (float)Math.PI / 2F, 2, 1);
+			return vector3d2 != null ? vector3d2 : RandomPositionGenerator.findGroundTarget(FireFlyEntity.this, 8, 4, -2, vector3d, (float)Math.PI / 2F);
 		}// 																															1,1,-1
 	}
 

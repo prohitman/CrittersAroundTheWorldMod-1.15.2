@@ -33,7 +33,7 @@ public class ModEntities {
 
 	public static final RegistryObject<EntityType<FireFlyEntity>> FIRE_FLY_ENTITY = ENTITY_TYPES.register(
 			"fire_fly_entity",
-			() -> EntityType.Builder.create(FireFlyEntity::new, EntityClassification.CREATURE).size(0.4F, 0.4F)
+			() -> EntityType.Builder.create(FireFlyEntity::new, EntityClassification.CREATURE).size(0.7F, 0.6F)
 					.build(new ResourceLocation(CrittersAroundTheWorld.MOD_ID, "fire_fly_entity").toString()));
 
 	// Entity Spawn Utils
