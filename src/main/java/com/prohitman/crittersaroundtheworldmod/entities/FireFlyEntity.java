@@ -314,10 +314,10 @@ public class FireFlyEntity extends AnimalEntity implements IFlyingAnimal {
 		private Vector3d getRandomLocation() {
 			Vector3d vector3d;
 			vector3d = FireFlyEntity.this.getLook(0.0F);
-
-			Vector3d vector3d2 = RandomPositionGenerator.findAirTarget(FireFlyEntity.this, 4, 3, vector3d, ((float)Math.PI / 2F), 1, 1);
-			return vector3d2 != null ? vector3d2 : RandomPositionGenerator.findGroundTarget(FireFlyEntity.this, 3, 3, -1, vector3d, ((float)Math.PI / 2F));
-		}
+								//4 , 3
+			Vector3d vector3d2 = RandomPositionGenerator.findAirTarget(FireFlyEntity.this, 1 , 1, vector3d, ((float)Math.PI / 2F), 1, 1);
+			return vector3d2 != null ? vector3d2 : RandomPositionGenerator.findGroundTarget(FireFlyEntity.this, 1, 1, -1, vector3d, ((float)Math.PI / 2F));
+		}// 																															1,1,-1
 	}
 
 }

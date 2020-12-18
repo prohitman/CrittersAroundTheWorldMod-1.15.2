@@ -24,6 +24,7 @@ public class FireFlyRenderer extends MobRenderer<FireFlyEntity, FireFlyModel<Fir
 	public FireFlyRenderer(EntityRendererManager renderManagerIn) {
 		super(renderManagerIn, new FireFlyModel<>(), 0.1F);
 		this.addLayer(new FireFlyBumLayerRenderer<>(this));
+
 	}
 
 	public ResourceLocation getEntityTexture(FireFlyEntity entity) {
@@ -44,23 +45,23 @@ public class FireFlyRenderer extends MobRenderer<FireFlyEntity, FireFlyModel<Fir
 			default:
 				break;
 			case EAST:
-				matrixStackIn.translate(0.3F, 0.0F, 0.0F);
+				matrixStackIn.translate(0.25F, 0.0F, 0.0F);
 
                 matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90.0F));
 				matrixStackIn.rotate(Vector3f.ZP.rotationDegrees(90.0F));
 				break;
 			case WEST:
-				matrixStackIn.translate(-0.3F, 0.0F, 0.0F);
+				matrixStackIn.translate(-0.25F, 0.0F, 0.0F);
                 matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90.0F));
                 matrixStackIn.rotate(Vector3f.ZN.rotationDegrees(90.0F));
 
                 break;
 			case NORTH:
-				matrixStackIn.translate(0.0F, 0.0F, -0.3F);
+				matrixStackIn.translate(0.0F, 0.0F, -0.25F);
                 matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90.0F));
 				break;
 			case SOUTH:
-				matrixStackIn.translate(0.0F, 0.0F, 0.3F);
+				matrixStackIn.translate(0.0F, 0.0F, 0.25F);
                 matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90.0F));
                 matrixStackIn.rotate(Vector3f.ZP.rotationDegrees(180.0F));
 				break;

@@ -118,10 +118,11 @@ public class FireFlyModel<T extends FireFlyEntity> extends SegmentedModel<T> {
 		this.Body.rotationPointY = 19.0F;// 19
 		boolean flag = entityIn.isOnGround() && entityIn.getMotion().lengthSquared() < 1.0E-7D;
 		if (entityIn.getAttachmentPos() != null) {
-			this.LWing.rotateAngleY = 0.0F;
-			this.LWing.rotateAngleZ = 0.0F;
-			this.RWing.rotateAngleZ = 0.0F;
-			this.RWing.rotateAngleY = 0.0F;
+			this.LWing.rotateAngleY = -45.0F;
+			this.LWingcase.rotateAngleY = -45.0F;
+
+			this.RWing.rotateAngleY = 45.0F;
+			this.RWingcase.rotateAngleY = 45.0F;
 
 /*			if(entityIn.getAttachmentFacing() == Direction.DOWN) {
 				float f1 = MathHelper.cos(ageInTicks * 0.18F);
