@@ -16,5 +16,5 @@ public class ModItems {
 	//Entity Spawn eggs
 	public static final RegistryObject<Item> FIRE_FLY_ENTITY_EGG = ITEMS.register("fire_fly_entity_egg", () -> new ModSpawnEggItem(ModEntities.FIRE_FLY_ENTITY, 0xdb5800, 0x1b2424, new Item.Properties().group(ItemGroup.MISC)));
 	public static final RegistryObject<Item> FAT_SEAL_ENTITY_EGG = ITEMS.register("fat_seal_entity_egg", () -> new ModSpawnEggItem(ModEntities.FAT_SEAL_ENTITY, 0x41413F, 0x353531, new Item.Properties().group(ItemGroup.MISC)));
-
+	public static final RegistryObject<Item> BLUE_WHALE_ENTITY_EGG = ITEMS.register("blue_whale_entity_egg", () -> new ModSpawnEggItem(ModEntities.BLUE_WHALE_ENTITY, 0x41413F, 0x353531, new Item.Properties().group(ItemGroup.MISC)));
 }
