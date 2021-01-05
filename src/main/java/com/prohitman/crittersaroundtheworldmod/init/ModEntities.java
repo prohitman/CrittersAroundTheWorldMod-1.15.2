@@ -39,7 +39,7 @@ public class ModEntities {
 
 	public static final RegistryObject<EntityType<BlueWhaleEntity>> BLUE_WHALE_ENTITY = ENTITY_TYPES.register(
 			"blue_whale_entity",
-			() -> EntityType.Builder.create(BlueWhaleEntity::new, EntityClassification.WATER_CREATURE).size(10.0F, 10.0F)
+			() -> EntityType.Builder.create(BlueWhaleEntity::new, EntityClassification.WATER_CREATURE).size(10.0F, 5.0F)
 					.build(new ResourceLocation(CrittersAroundTheWorld.MOD_ID, "blue_whale_entity").toString()));
 
 	// Entity Spawn Utils
@@ -60,7 +60,7 @@ public class ModEntities {
 	public static void registerSpawnPlacement() {
 		EntitySpawnPlacementRegistry.register(FAT_SEAL_ENTITY.get(), EntitySpawnPlacementRegistry.PlacementType.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, FatSealEntity::canSpawn);
 		EntitySpawnPlacementRegistry.register(FIRE_FLY_ENTITY.get(), EntitySpawnPlacementRegistry.PlacementType.NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, FireFlyEntity::canSpawn);
-		//EntitySpawnPlacementRegistry.register(BLUE_WHALE_ENTITY.get(), EntitySpawnPlacementRegistry.PlacementType.NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, BLUE_WHALE_ENTITY::canSpawn);
+		EntitySpawnPlacementRegistry.register(BLUE_WHALE_ENTITY.get(), EntitySpawnPlacementRegistry.PlacementType.IN_WATER, Heightmap.Type.OCEAN_FLOOR_WG, BlueWhaleEntity::canSpawn);
 	}
 
 	public static void initEntityAttributes(){

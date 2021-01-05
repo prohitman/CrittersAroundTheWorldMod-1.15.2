@@ -10,7 +10,9 @@ import net.minecraft.entity.ai.goal.BreatheAirGoal;
 import net.minecraft.entity.ai.goal.FindWaterGoal;
 import net.minecraft.entity.ai.goal.LookRandomlyGoal;
 import net.minecraft.entity.ai.goal.RandomSwimmingGoal;
+import net.minecraft.entity.item.BoatEntity;
 import net.minecraft.entity.passive.WaterMobEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -23,6 +25,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
@@ -172,10 +175,10 @@ public class BlueWhaleEntity extends WaterMobEntity {
         }
     }
 
-    public static boolean func_223364_b(EntityType<BlueWhaleEntity> p_223364_0_, IWorld p_223364_1_, SpawnReason reason, BlockPos p_223364_3_, Random p_223364_4_) {
-        if (p_223364_3_.getY() > 45 && p_223364_3_.getY() < p_223364_1_.getSeaLevel()) {
-            Optional<RegistryKey<Biome>> optional = p_223364_1_.func_242406_i(p_223364_3_);
-            return (!Objects.equals(optional, Optional.of(Biomes.FROZEN_OCEAN))) && p_223364_1_.getFluidState(p_223364_3_).isTagged(FluidTags.WATER);
+    public static boolean canSpawn(EntityType<BlueWhaleEntity> entity, IWorld world, SpawnReason reason, BlockPos blockpos, Random rand) {
+        if (blockpos.getY() > 45 && blockpos.getY() < world.getSeaLevel()) {
+            Optional<RegistryKey<Biome>> optional = world.func_242406_i(blockpos);
+            return (!Objects.equals(optional, Optional.of(Biomes.FROZEN_OCEAN))) && world.getFluidState(blockpos).isTagged(FluidTags.WATER);
         } else {
             return false;
         }
@@ -220,6 +223,46 @@ public class BlueWhaleEntity extends WaterMobEntity {
             super.travel(travelVector);
         }
 
+    }
+
+    /**
+     * Returns true if this entity should push and be pushed by other entities when colliding.
+     */
+    public boolean canBePushed() {
+        return false;
+    }
+
+    public boolean canCollide(Entity entity) {
+        return func_242378_a(this, entity);
+    }
+
+    public static boolean func_242378_a(Entity p_242378_0_, Entity entity) {
+        return (entity.func_241845_aY() || entity.canBePushed()) && !p_242378_0_.isRidingSameEntity(entity);
+    }
+
+    public boolean func_241845_aY() {
+        return true;
+    }
+
+/*    @Override
+    public void applyEntityCollision(Entity entityIn) {
+        if (!this.isRidingSameEntity(entityIn)) {
+            if (!entityIn.noClip && !this.noClip) {
+                Vector3d vector3d = this.getMotion();
+
+                entityIn.addVelocity(vector3d.x, vector3d.y, vector3d.z);
+            }
+        }
+    }*/
+
+    public void applyEntityCollision(Entity entityIn) {
+    }
+
+    @Override
+    public void onCollideWithPlayer(PlayerEntity entityIn) {
+        Vector3d vector3d = this.getMotion();
+
+        entityIn.addVelocity(0, vector3d.y, 0);
     }
 
     static class MoveHelperController extends MovementController {
